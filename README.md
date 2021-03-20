@@ -15,3 +15,7 @@ The initial target platform for this project is Android, however I'd like to mak
 ### Building
 
 ## Usage
+
+## Documentation
+- [design](docs/design.md)
+- [todo](docs/todo.md)
