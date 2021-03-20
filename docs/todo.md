@@ -2,6 +2,7 @@
 - [ ] Document fuel consumption methods
     - [ ] Read related papers
     - [ ] What components do we need to calculate
+    - [ ] Calculating acceleration and various other secondary stats from gps
     - [ ] How do we calculate these from the variables we have?
     - [ ] How do we calculate the final fuel consumption value?
 
@@ -15,11 +16,13 @@
 
 - [ ] Design of app UI
     - [ ] Trip recording page
-    - [ ] Trip Summary page
+    - [ ] Trip summary page
         - This should be the detail page for records in the trip history page table
     - [ ] Trip history page
-    - [ ] Last week, month, year, All-time stats page
+    - [ ] Last week, month, year, all-time stats page
     - [ ] Settings page?
+        - Units (miles/km and currencies)
+    - [ ] Warning that the app is for use by passengers
 
 - [ ] Implementation and Testing
     - [ ] Basic app bootstrap and prep for DI, etc.
@@ -28,8 +31,8 @@
         - [ ] ConsumptionCalculationService
             - [ ] Subcomponents of this
             - [ ] Unit tests based on the maths of each component and full end-to-end calculation
-    
-    - [ ] Route recording
-        - [ ] Simple unit test simulating coordinates
+    - [ ] Trip recording
+        - [ ] Trip service
+            - [ ] Simple unit test simulating coordinates
         - [ ] Trip recording page
         - [ ] Trip summary page
