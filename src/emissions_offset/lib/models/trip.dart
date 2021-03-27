@@ -5,8 +5,13 @@ class Trip {
   int id;
   List<TripPoint> tripPoints;
 
-  addPoint(Point point) {
+  Trip(){
+    this.tripPoints = [];
+  }
 
+  addPoint(Point point) {
+    var tripPoint = new TripPoint(point);
+    this.tripPoints.add(tripPoint);
   }
 
   num getDistance() {
