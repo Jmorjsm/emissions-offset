@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:emissions_offset/data/trip_recorder.dart';
+import 'package:geolocator/geolocator.dart';
 
 void main() {
   runApp(MyApp());
@@ -48,6 +50,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
+  String _position = '';
+
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -59,8 +63,18 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void getLocation() async {
+    var tripRecorder = new TripRecorder();
+    Position position = await tripRecorder.determinePosition();
+    setState(() {
+      this._position = position.toString();
+      print(this._position);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    getLocation();
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -99,6 +113,12 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
+            ),
+            Text(
+              'Position:',
+            ),
+            Text(
+                '$_position',
             ),
           ],
         ),
