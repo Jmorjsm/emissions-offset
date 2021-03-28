@@ -1,8 +1,8 @@
 # Design
 ## Route recording
 ###  Point
-    - float Latitude
-    - float Longitude
+    - double Latitude
+    - double Longitude
 
 ### TripPoint
     - Point Point
@@ -11,10 +11,10 @@
 ### VehicleClass
 
 ### Trip
-    - float Distance
+    - double Distance
     - TripPoint[] TripPoints
 
-### TripService
+### TripRecorder
     - Begin(Trip)
     - Pause(Trip)
     - Resume(Trip)
@@ -22,15 +22,15 @@
     - registerGpsHandler(Trip)
 
 ## MPG calculation
-### ConsumptionCalculationService
+### ConsumptionCalculator
     - Calculate(Trip)
     - Calculate(params Trip[])
 
 ## Offset calculation
-### EmissionsCalculationService
+### EmissionsCalculator
     - Calculate(Trip)
     - Calculate(params Trip[])
 
-### OffsetCalculationService
+### OffsetCalculator
     - Calculate(Trip)
     - Calculate(params Trip[])
