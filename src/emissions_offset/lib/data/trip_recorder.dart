@@ -1,5 +1,23 @@
+import 'dart:async';
+
+import 'package:emissions_offset/models/trip.dart';
 import 'package:geolocator/geolocator.dart';
 class TripRecorder {
+  Begin(Trip trip) {
+  }
+
+  RegisterGpsHandler(Trip trip) {
+    Geolocator.getPositionStream(desiredAccuracy: LocationAccuracy.best).listen(
+      (Position position) {
+        if (position != null) {
+          trip.addPosition(position);
+        }
+
+        print(position == null ? 'Unknown' : position.latitude.toString() + ', '
+          + position.longitude.toString());
+      });
+  }
+
   Future<Position> determinePosition() async {
     bool serviceEnabled;
     LocationPermission permission;
