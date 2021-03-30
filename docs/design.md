@@ -8,11 +8,17 @@
     - Point Point
     - DateTime DateTime
 
-### VehicleClass
+### Vehicle
+    - double DragCoefficient
+    - double Mass
 
 ### Trip
-    - double Distance
     - TripPoint[] TripPoints
+    - addPoint(Point)
+    - addPosition(Position)
+    - double getDistance()
+    - double[] getSpeeds()
+    - double[] getAccelerations()
 
 ### TripRecorder
     - Begin(Trip)
@@ -23,8 +29,10 @@
 
 ## MPG calculation
 ### ConsumptionCalculator
+    - ConsumptionCalculator(Vehicle)
     - Calculate(Trip)
     - Calculate(params Trip[])
+    - CalculateMpgForPoints(Point, Point)
 
 ## Offset calculation
 ### EmissionsCalculator
