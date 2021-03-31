@@ -47,15 +47,21 @@ TripRecorder : registerGpsHandler(Trip)
 TripRecorder --> Trip
 TripRecorder <-- Geolocator
 
+class Geolocator
+note "This is part of the geolocator package" as NGeolocator1
+Geolocator .. NGeolocator1
+
 class TripStore
 TripStore : save(Trip)
+TripStore : Trip[] GetSavedTrips()
 
 'Fuel Consumption
 class ConsumptionCalculator
 ConsumptionCalculator : consumptionCalculator(Vehicle)
 ConsumptionCalculator : double calculate(Trip)
 ConsumptionCalculator : double calculate(params Trip[])
-ConsumptionCalculator : double calculateMpgForPoints(Point, Point)
+ConsumptionCalculator : double calculateRoadGrade(Point point1, Point point2) {
+ConsumptionCalculator : double calculateSpeed(TripPoint tripPoint1, TripPoint tripPoint2) {
 ConsumptionCalculator <-- Trip
 ConsumptionCalculator <-- Vehicle
 
@@ -68,9 +74,7 @@ EmissionsCalculator --> ConsumptionCalculator
 class OffsetCalculator
 OffsetCalculator : double calculateOffsetCost(Trip)
 OffsetCalculator : double calculateOffsetCost(params Trip[])
-ConsumptionCalculator --> OffsetCalculator
+OffsetCalculator --> EmissionsCalculator
 
-class Geolocator
-note "This is part of the geolocator package" as NGeolocator1
-Geolocator .. NGeolocator1
+
 @enduml
