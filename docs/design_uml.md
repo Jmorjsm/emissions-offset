@@ -23,6 +23,19 @@ Trip : double[] getAccelerations()
 Trip "1" *-- "1..*" TripPoint
 'TODO add TripDetails and TripSummary inheriting from Trip
 
+class TripSummary
+TripSummary : double distance
+TripSummary : double fuelConsumed
+TripSummary : double carbonEmissions
+TripSummary : DateTime dateTime
+TripSummary <|-- Trip
+
+class TripDetails
+TripDetails : Duration duration
+TripDetails : double offsetCost
+TripDetails : double averageSpeed
+TripDetails <|-- TripSummary
+
 'Trip recording
 'TODO add communication here with geolocator module
 class TripRecorder
