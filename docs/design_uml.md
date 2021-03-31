@@ -1,4 +1,5 @@
 @startuml
+'Basic models
 class Point
 Point : double latitude
 Point : double longitude
@@ -20,9 +21,9 @@ Trip : double getDistance()
 Trip : double[] getSpeeds()
 Trip : double[] getAccelerations()
 Trip "1" *-- "1..*" TripPoint
-
 'TODO add TripDetails and TripSummary inheriting from Trip
 
+'Trip recording
 'TODO add communication here with geolocator module
 class TripRecorder
 TripRecorder : begin(Trip)
@@ -32,6 +33,7 @@ TripRecorder : complete(Trip)
 TripRecorder : registerGpsHandler(Trip)
 TripRecorder --> Trip
 
+'Fuel Consumption
 class ConsumptionCalculator
 ConsumptionCalculator : consumptionCalculator(Vehicle)
 ConsumptionCalculator : double calculate(Trip)
@@ -40,6 +42,7 @@ ConsumptionCalculator : double calculateMpgForPoints(Point, Point)
 ConsumptionCalculator <-- Trip
 ConsumptionCalculator <-- Vehicle
 
+'Offset calculation
 class EmissionsCalculator
 EmissionsCalculator : double calculate(Trip)
 EmissionsCalculator : double calculate(params Trip[])
