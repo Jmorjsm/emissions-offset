@@ -8,4 +8,7 @@ class TripPoint {
     this.point = point;
     this.dateTime = DateTime.now();
   }
+  setDateTime(DateTime dateTime){
+    this.dateTime = dateTime;
+  }
 }

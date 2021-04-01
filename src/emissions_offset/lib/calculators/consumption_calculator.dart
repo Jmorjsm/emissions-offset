@@ -1,5 +1,13 @@
+import 'package:emissions_offset/models/point.dart';
+import 'package:emissions_offset/models/trip.dart';
+import 'package:emissions_offset/models/trip_point.dart';
+import 'package:emissions_offset/models/vehicle.dart';
+import 'package:geolocator/geolocator.dart';
+
 class ConsumptionCalculator {
-  consumptionCalculator(Vehicle vehicle) {
+  Vehicle vehicle;
+
+  ConsumptionCalculator(Vehicle vehicle) {
     this.vehicle = vehicle;
   }
 
@@ -8,7 +16,7 @@ class ConsumptionCalculator {
     var accelerations = trip.getAccelerations();
     for (var pointIndex = 1; pointIndex < trip.tripPoints.length; pointIndex++){
       var p1 = trip.tripPoints[pointIndex-1];
-      var p2 = trip.tripPoints[pointIndex]
+      var p2 = trip.tripPoints[pointIndex];
 
       // get the input parameters for the numerator
       var k1 = this.vehicle.mass;
@@ -20,10 +28,10 @@ class ConsumptionCalculator {
       var vs = this.calculateSpeed(p1, p2);
       
       // calculate this denonminator
-      var denominator = a + k2 + (k3 * (vs*vs))
+      var denominator = a + k2 + (k3 * (vs*vs));
       
       // calculate this mpg value and add to the ongoing values list
-      mpgValues.add(k1/denonminator);
+      mpgValues.add(k1/denominator);
     }
 
     var sumMpg = mpgValues.reduce((a,b) => a+b);
@@ -32,11 +40,12 @@ class ConsumptionCalculator {
     return avgMpg * trip.getDistance();
   }
 
-  double calculate(Trip[] trips) {
-    var total = 0;
+  double calculateMultiple(List<Trip> trips) {
+    double total = 0;
     for(var tripIndex = 0; tripIndex < trips.length; tripIndex++) {
       total += this.calculate(trips[tripIndex]);
     }
+    return total/(trips.length);
   }
   
   double calculateRoadGrade(Point point1, Point point2) {
@@ -44,7 +53,7 @@ class ConsumptionCalculator {
     var distance = Geolocator.distanceBetween(point2.latitude, point2.longitude,
       point1.latitude,point1.longitude);
     
-    return deltaAltitude / distance;
+    return 100 * deltaAltitude / distance;
   }
 
   double calculateSpeed(TripPoint tripPoint1, TripPoint tripPoint2) {
@@ -53,8 +62,8 @@ class ConsumptionCalculator {
 
     var distance = Geolocator.distanceBetween(point2.latitude, point2.longitude,
       point1.latitude,point1.longitude);
-    var deltaTime = tripPoint2.dateTime - tripPoint1.dateTime;
+    var deltaTime = tripPoint2.dateTime.difference(tripPoint1.dateTime);
 
-    return distance / deltaTime;
+    return (distance/1000) / deltaTime.inHours;
   }
 }

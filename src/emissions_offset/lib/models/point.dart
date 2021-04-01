@@ -1,7 +1,7 @@
 class Point {
-  num longitude;
-  num latitude;
-  num altitude;
+  double longitude;
+  double latitude;
+  double altitude;
 
   Point(this.longitude, this.latitude, this.altitude);
 }

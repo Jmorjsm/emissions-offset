@@ -23,5 +23,18 @@ class Trip {
     this.addPoint(point);
   }
 
-  num getDistance() {}
+  num getDistance() {
+    double totalDistance = 0;
+    for (var pointIndex=1; pointIndex <this.tripPoints.length; pointIndex++) {
+      var p1 = this.tripPoints[pointIndex-1].point;
+      var p2 = this.tripPoints[pointIndex].point;
+      totalDistance += Geolocator.distanceBetween(p2.latitude, p2.longitude, p1.latitude, p1.longitude);
+    }
+    return totalDistance;
+  }
+
+  List<double> getAccelerations()
+  {
+    return [0,111,0];
+  }
 }
