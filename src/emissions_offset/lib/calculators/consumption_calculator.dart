@@ -14,7 +14,7 @@ class ConsumptionCalculator {
   double calculate(Trip trip) {
     var mpgValues = [];
     var accelerations = trip.getAccelerations();
-    for (var pointIndex = 1; pointIndex < trip.tripPoints.length; pointIndex++){
+    for (var pointIndex = 1; pointIndex < trip.tripPoints.length-1; pointIndex++){
       var p1 = trip.tripPoints[pointIndex-1];
       var p2 = trip.tripPoints[pointIndex];
 
@@ -22,7 +22,7 @@ class ConsumptionCalculator {
       var k1 = this.vehicle.mass;
 
       // get the input parameters for the denominator
-      var a = accelerations[pointIndex];
+      var a = accelerations[pointIndex-1];
       var k2 = this.calculateRoadGrade(p1.point,p2.point);
       var k3 = this.vehicle.dragCoefficient;
       var vs = this.calculateSpeed(p1, p2);
@@ -47,7 +47,7 @@ class ConsumptionCalculator {
     }
     return total/(trips.length);
   }
-  
+  //todo make private
   double calculateRoadGrade(Point point1, Point point2) {
     var deltaAltitude = point2.altitude - point1.altitude;
     var distance = Geolocator.distanceBetween(point2.latitude, point2.longitude,

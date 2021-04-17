@@ -43,7 +43,7 @@ void main() {
   test('calculate() calculates the consumption for a single trip.', () {
     // 0 longitude and 1 longitude are about 111km apart
     var testPoint1 = new Point(0, 0, 0);
-    var testPoint2 = new Point(1, 0, 111000);
+    var testPoint2 = new Point(1, 0, 0);
     var testPoint3 = new Point(0, 0, 0);
 
     // Setup datetimes to be 1 hour apart
@@ -56,6 +56,8 @@ void main() {
 
     // setup the trip
     Trip trip = new Trip();
+    trip.startTime = new DateTime(2020,12,31,23,59,55);
+    trip.endTime = new DateTime(2021,1,1,2,0,5);
     trip.tripPoints.add(testTripPoint1);
     trip.tripPoints.add(testTripPoint2);
     trip.tripPoints.add(testTripPoint3);
