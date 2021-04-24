@@ -1,4 +1,5 @@
 import 'package:emissions_offset/stores/trip_store.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:emissions_offset/data/trip_recorder.dart';
 import 'package:geolocator/geolocator.dart';
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Emissions Offset',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -30,9 +31,10 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.deepPurple,
+        accentColor: Colors.tealAccent,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Trip History'),
     );
   }
 }
@@ -78,18 +80,26 @@ class _MyHomePageState extends State<MyHomePage> {
                   var time = DateFormat.Hm().format(trip.startTime);
 
                   return ListTile(
-                    leading: Icon(Icons.directions_car),
+                    leading: Icon(
+                      Icons.directions_car,
+                      color: Colors.black54,
+                    ),
                     title: Column(
                       children: <Widget>[
-                        Text('${trip.getDistance()}km'),
+                        Text(
+                            '${NumberFormat("####.00").format(trip.calculateDistance())}km'),
                         Text('Fuel consumed: 0L'),
                         Text('Carbon emitted: 0.0kg'),
                       ],
+                      crossAxisAlignment: CrossAxisAlignment.start,
                     ),
-                    trailing: Column(children: <Widget>[
-                      Text(date),
-                      Text(time),
-                    ]),
+                    trailing: Column(
+                      children: <Widget>[
+                        Text(date),
+                        Text(time),
+                      ],
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                    ),
                   );
                 },
               )),
