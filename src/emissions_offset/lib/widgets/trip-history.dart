@@ -1,4 +1,5 @@
 import 'package:emissions_offset/stores/trip_store.dart';
+import 'package:emissions_offset/widgets/trip-detail.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -37,37 +38,45 @@ class _TripHistoryState extends State<TripHistory> {
         title: Text(widget.title),
       ),
       body: Consumer<TripStore>(
-          builder: (context, tripStore, child) => ListView.builder(
-                itemCount: tripStore.trips.length,
-                itemBuilder: (context, index) {
-                  var trip = tripStore.trips[index];
-                  var date = DateFormat.yMd().format(trip.startTime);
-                  var time = DateFormat.Hm().format(trip.startTime);
-
-                  return ListTile(
-                    leading: Icon(
-                      Icons.directions_car,
-                      color: Colors.black54,
-                    ),
-                    title: Column(
-                      children: <Widget>[
-                        Text(
-                            '${NumberFormat("####.00").format(trip.calculateDistance())}km'),
-                        Text('Fuel consumed: 0L'),
-                        Text('Carbon emitted: 0.0kg'),
-                      ],
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                    ),
-                    trailing: Column(
-                      children: <Widget>[
-                        Text(date),
-                        Text(time),
-                      ],
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                    ),
-                  );
-                },
-              )),
+        builder: (context, tripStore, child) => ListView.builder(
+          itemCount: tripStore.trips.length,
+          itemBuilder: (context, index) {
+            var trip = tripStore.trips[index];
+            var date = DateFormat.yMd().format(trip.startTime);
+            var time = DateFormat.Hm().format(trip.startTime);
+            return ListTile(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TripDetail(),
+                  ),
+                );
+              },
+              leading: Icon(
+                Icons.directions_car,
+                color: Colors.black54,
+              ),
+              title: Column(
+                children: <Widget>[
+                  Text(
+                      '${NumberFormat("####.00").format(trip.calculateDistance())}km'),
+                  Text('Fuel consumed: 0L'),
+                  Text('Carbon emitted: 0.0kg'),
+                ],
+                crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+              trailing: Column(
+                children: <Widget>[
+                  Text(date),
+                  Text(time),
+                ],
+                crossAxisAlignment: CrossAxisAlignment.end,
+              ),
+            );
+          },
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // This will eventually navigate to the new trip page,
