@@ -2,16 +2,16 @@ import 'package:emissions_offset/stores/trip_store.dart';
 import 'package:flutter/material.dart';
 import 'package:emissions_offset/data/trip_recorder.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/locale.dart';
 import 'package:provider/provider.dart';
 import 'models/trip.dart';
 
 void main() {
-  runApp(
-      ChangeNotifierProvider(
-        create: (context) => TripStore(),
-        child: MyApp(),
-      )
-  );
+  runApp(ChangeNotifierProvider(
+    create: (context) => TripStore(),
+    child: MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -48,7 +48,6 @@ class MyHomePage extends StatefulWidget {
   // case the title) provided by the parent (in this case the App widget) and
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
-
   final String title;
 
   @override
@@ -71,15 +70,29 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Consumer<TripStore>(
-        builder: (context, tripStore, child) => ListView.builder(
-          itemCount: tripStore.trips.length,
-          itemBuilder: (context, index){
-            return ListTile(
-              title: Text('${tripStore.trips[index].endTime}'),
-            );
-          },
-        )
-      ),
+          builder: (context, tripStore, child) => ListView.builder(
+                itemCount: tripStore.trips.length,
+                itemBuilder: (context, index) {
+                  var trip = tripStore.trips[index];
+                  var date = DateFormat.yMd().format(trip.startTime);
+                  var time = DateFormat.Hm().format(trip.startTime);
+
+                  return ListTile(
+                    leading: Icon(Icons.directions_car),
+                    title: Column(
+                      children: <Widget>[
+                        Text('${trip.getDistance()}km'),
+                        Text('Fuel consumed: 0L'),
+                        Text('Carbon emitted: 0.0kg'),
+                      ],
+                    ),
+                    trailing: Column(children: <Widget>[
+                      Text(date),
+                      Text(time),
+                    ]),
+                  );
+                },
+              )),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // This will eventually navigate to the new trip page,
