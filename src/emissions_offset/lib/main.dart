@@ -1,11 +1,17 @@
+import 'package:emissions_offset/stores/trip_store.dart';
 import 'package:flutter/material.dart';
 import 'package:emissions_offset/data/trip_recorder.dart';
 import 'package:geolocator/geolocator.dart';
-
+import 'package:provider/provider.dart';
 import 'models/trip.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(
+      ChangeNotifierProvider(
+        create: (context) => TripStore(),
+        child: MyApp(),
+      )
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -50,37 +56,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  String _position = '';
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  void getLocation() async {
-    var tripRecorder = new TripRecorder();
-    Position position = await tripRecorder.determinePosition();
-    setState(() {
-      this._position = position.toString();
-      print(this._position);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    getLocation();
-
-    var allTrips;
-    final trips = List<Trip>.generate(3, (i) => allTrips[i]);
-
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -93,17 +70,24 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: ListView.builder(
-        itemCount: trips.length,
-        itemBuilder: (context, index){
-          return ListTile(
-            title: Text('${trips[index].endTime}'),
-          );
-        },
+      body: Consumer<TripStore>(
+        builder: (context, tripStore, child) => ListView.builder(
+          itemCount: tripStore.trips.length,
+          itemBuilder: (context, index){
+            return ListTile(
+              title: Text('${tripStore.trips[index].endTime}'),
+            );
+          },
+        )
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
+        onPressed: () {
+          // This will eventually navigate to the new trip page,
+          // for now it's adding a placeholder test trip to the trip store.
+          var tripStore = context.read<TripStore>();
+          tripStore.addTestTrip();
+        },
+        tooltip: 'New Trip',
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
