@@ -1,5 +1,7 @@
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/stores/trip_store.dart';
+import 'package:emissions_offset/widgets/historical-statistics.dart';
+import 'package:emissions_offset/widgets/settings.dart';
 import 'package:emissions_offset/widgets/trip-detail.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +39,38 @@ class _TripHistoryState extends State<TripHistory> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              switch (value) {
+                case 'Historical statistics':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HistoricalStatistics(),
+                    ),
+                  );
+                  break;
+                case 'Settings':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Settings(),
+                    ),
+                  );
+                  break;
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return {'Historical statistics', 'Settings'}.map((String choice) {
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: Text(choice),
+                );
+              }).toList();
+            },
+          ),
+        ],
       ),
       body: Consumer<TripStore>(
         builder: (context, tripStore, child) => ListView.builder(
@@ -86,7 +120,7 @@ class _TripHistoryState extends State<TripHistory> {
         },
         tooltip: 'New Trip',
         child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }
