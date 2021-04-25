@@ -7,11 +7,11 @@ import 'package:provider/provider.dart';
 void main() {
   runApp(ChangeNotifierProvider(
     create: (context) => TripStore(),
-    child: MyApp(),
+    child: EmissionsOffsetApp(),
   ));
 }
 
-class MyApp extends StatelessWidget {
+class EmissionsOffsetApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
