@@ -1,4 +1,5 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 
 import 'point.dart';
 import 'trip_point.dart';
@@ -10,8 +11,8 @@ class Trip {
   DateTime startTime;
   DateTime endTime;
 
-  var _distanceCache;
-  var _distanceCacheTripPointCount;
+  num _distanceCache;
+  int _distanceCacheTripPointCount;
 
   Trip() {
     this.tripPoints = [];
@@ -41,6 +42,7 @@ class Trip {
     if (this._distanceCache == null ||
         this.tripPoints.length > this._distanceCacheTripPointCount) {
       this._distanceCache = this.calculateDistance();
+      this._distanceCacheTripPointCount = tripPoints.length;
     }
 
     return this._distanceCache;
@@ -109,5 +111,13 @@ class Trip {
     }
 
     return accelerations;
+  }
+
+  String formatDistance() =>
+      '${NumberFormat("####.00").format(this.getDistance())}km';
+
+  String formatTime() {
+    var diff = this.endTime.difference(this.startTime);
+    return '${diff.inHours}:${diff.inMinutes.remainder(60)}:${diff.inSeconds.remainder(60)}';
   }
 }

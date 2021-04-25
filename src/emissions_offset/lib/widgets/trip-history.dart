@@ -1,3 +1,4 @@
+import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/stores/trip_store.dart';
 import 'package:emissions_offset/widgets/trip-detail.dart';
 import 'package:flutter/cupertino.dart';
@@ -49,7 +50,7 @@ class _TripHistoryState extends State<TripHistory> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => TripDetail(),
+                    builder: (context) => TripDetail(trip: trip),
                   ),
                 );
               },
@@ -59,8 +60,7 @@ class _TripHistoryState extends State<TripHistory> {
               ),
               title: Column(
                 children: <Widget>[
-                  Text(
-                      '${NumberFormat("####.00").format(trip.calculateDistance())}km'),
+                  Text(trip.formatDistance()),
                   Text('Fuel consumed: 0L'),
                   Text('Carbon emitted: 0.0kg'),
                 ],
