@@ -1,3 +1,5 @@
+import 'package:emissions_offset/calculators/consumption_calculator.dart';
+import 'package:emissions_offset/models/vehicle.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 
@@ -14,8 +16,19 @@ class Trip {
   num _distanceCache;
   int _distanceCacheTripPointCount;
 
+  num _fuelConsumed;
+  num _carbonEmissions;
+  Duration _elapsedTime;
+  num _offsetCost;
+  num _averageSpeed;
+
+  Vehicle vehicle;
+  ConsumptionCalculator consumptionCalculator;
+
   Trip() {
     this.tripPoints = [];
+    this.vehicle = new Vehicle(750, 0.3);
+    this.consumptionCalculator = new ConsumptionCalculator(this.vehicle);
   }
 
   begin() {
@@ -119,5 +132,45 @@ class Trip {
   String formatTime() {
     var diff = this.endTime.difference(this.startTime);
     return '${diff.inHours}:${diff.inMinutes.remainder(60)}:${diff.inSeconds.remainder(60)}';
+  }
+
+  num getFuelConsumed() {
+    if (this._fuelConsumed == null) {
+      this._fuelConsumed = this.consumptionCalculator.calculate(this);
+    }
+
+    return this._fuelConsumed;
+  }
+
+  num getCarbonEmissions() {
+    if (this._carbonEmissions == null) {
+      this._carbonEmissions = this.getFuelConsumed() * 2.3;
+    }
+
+    return this._carbonEmissions;
+  }
+
+  Duration getElapsedTime() {
+    if (this._elapsedTime == null) {
+      this._elapsedTime = this.endTime.difference(this.startTime);
+    }
+
+    return this._elapsedTime;
+  }
+
+  num getOffsetCost() {
+    if (this._offsetCost == null) {
+      this._offsetCost = this.getCarbonEmissions() * 0.50;
+    }
+
+    return this._offsetCost;
+  }
+
+  num getAverageSpeed() {
+    if (this._averageSpeed == null) {
+      this._averageSpeed = this.getAverageSpeed();
+    }
+
+    return this._averageSpeed;
   }
 }
