@@ -3,14 +3,32 @@ import 'dart:async';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:geolocator/geolocator.dart';
 class TripRecorder {
-  Begin(Trip trip) {
+
+  bool isRecording = false;
+
+  begin() {
+    this.isRecording = true;
   }
 
-  RegisterGpsHandler(Trip trip) {
+  pause() {
+    this.isRecording = false;
+  }
+
+  resume() {
+    this.isRecording = true;
+  }
+
+  finish() {
+    this.isRecording = false;
+  }
+
+  registerGpsHandler(Trip trip) {
     Geolocator.getPositionStream(desiredAccuracy: LocationAccuracy.best).listen(
       (Position position) {
-        if (position != null) {
-          trip.addPosition(position);
+        if(this.isRecording){
+          if (position != null) {
+            trip.addPosition(position);
+          }
         }
 
         print(position == null ? 'Unknown' : position.latitude.toString() + ', '

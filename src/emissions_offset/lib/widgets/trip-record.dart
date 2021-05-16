@@ -1,1 +1,45 @@
-//todo steal this from original gps logic
+import 'package:emissions_offset/data/trip_recorder.dart';
+import 'package:emissions_offset/models/trip.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+// TODO: Return the recorded trip to the trip store
+class TripRecord extends StatelessWidget {
+  final Trip trip;
+  TripRecorder tr;
+
+  // Initialise this TripRecord with a new trip.
+  TripRecord(this.trip) {
+    this.tr = TripRecorder();
+    this.tr.registerGpsHandler(this.trip);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Trip Recording'),
+      ),
+      body: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text('Distance'),
+                  subtitle: Text(trip.formatDistance()),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: Text('Time'),
+                  subtitle: Text(trip.formatTime()),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
