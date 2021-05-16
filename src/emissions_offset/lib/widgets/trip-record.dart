@@ -18,6 +18,7 @@ class _TripRecorderState extends State {
   Trip trip;
   TripRecorder tr;
   bool isRecording = false;
+  IconData fabIcon = Icons.play_arrow;
 
   // Initialise this TripRecord with a new trip.
   _TripRecorderState() {
@@ -84,14 +85,19 @@ class _TripRecorderState extends State {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.play_arrow),
+          child: Icon(fabIcon),
           onPressed: () {
-            if(!this.isRecording){
-              this.start();
-
-            } else {
-              this.pause();
-            }
+            setState(() {
+              if(!this.isRecording){
+                if(trip.tripPoints.isEmpty) {
+                  this.start();
+                } else {
+                  this.resume();
+                }
+              } else {
+                this.pause();
+              }
+            });
           }
       ),
     );
@@ -100,14 +106,17 @@ class _TripRecorderState extends State {
   start() {
     this.isRecording = true;
     this.trip.begin();
+    this.fabIcon = Icons.pause;
   }
 
   pause() {
     this.isRecording = false;
+    this.fabIcon = Icons.play_arrow;
   }
 
   resume() {
     this.isRecording = true;
+    this.fabIcon = Icons.pause;
   }
 
   finish() {
