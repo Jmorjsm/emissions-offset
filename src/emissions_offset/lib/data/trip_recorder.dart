@@ -6,7 +6,7 @@ class TripRecorder {
 
   bool isRecording = false;
 
-  begin() {
+  start() {
     this.isRecording = true;
   }
 
@@ -30,7 +30,7 @@ class TripRecorder {
             trip.addPosition(position);
           }
         }
-
+        print("isrecording: " + this.isRecording.toString());
         print(position == null ? 'Unknown' : position.latitude.toString() + ', '
           + position.longitude.toString());
       });

@@ -130,7 +130,13 @@ class Trip {
       '${NumberFormat("####.00").format(this.getDistance())}km';
 
   String formatTime() {
-    var diff = this.endTime.difference(this.startTime);
+    var diff;
+    if(this.endTime == null){
+      diff = Duration.zero;
+    } else {
+      diff = this.endTime.difference(this.startTime);
+    }
+
     return '${diff.inHours}:${diff.inMinutes.remainder(60)}:${diff.inSeconds.remainder(60)}';
   }
 
@@ -151,7 +157,7 @@ class Trip {
   }
 
   Duration getElapsedTime() {
-    if (this._elapsedTime == null) {
+    if (this._elapsedTime == null && this.endTime != null) {
       this._elapsedTime = this.endTime.difference(this.startTime);
     }
 

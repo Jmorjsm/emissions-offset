@@ -3,6 +3,7 @@ import 'package:emissions_offset/stores/trip_store.dart';
 import 'package:emissions_offset/widgets/historical-statistics.dart';
 import 'package:emissions_offset/widgets/settings.dart';
 import 'package:emissions_offset/widgets/trip-detail.dart';
+import 'package:emissions_offset/widgets/trip-record.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -116,7 +117,14 @@ class _TripHistoryState extends State<TripHistory> {
           // This will eventually navigate to the new trip page,
           // for now it's adding a placeholder test trip to the trip store.
           var tripStore = context.read<TripStore>();
-          tripStore.addTestTrip();
+          //tripStore.addTestTrip();
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TripRecord(Trip()),
+            ),
+          );
         },
         tooltip: 'New Trip',
         child: Icon(Icons.add),

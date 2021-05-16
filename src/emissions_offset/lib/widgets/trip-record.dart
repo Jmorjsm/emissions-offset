@@ -38,7 +38,35 @@ class TripRecord extends StatelessWidget {
               ),
             ],
           ),
+
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text('point count'),
+                  subtitle: Text(this.trip.tripPoints.length.toString()),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: Text('Time'),
+                  subtitle: Text(trip.formatTime()),
+                ),
+              ),
+            ],
+          ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.play_arrow),
+        onPressed: () {
+          if(!this.tr.isRecording){
+            this.tr.start();
+
+          } else {
+            this.tr.pause();
+          }
+        }
       ),
     );
   }
