@@ -126,18 +126,34 @@ class Trip {
     return accelerations;
   }
 
+  DateTime getStart() {
+    if (this.tripPoints.isEmpty){
+      return null;
+    }
+
+    return this.tripPoints.first.dateTime;
+  }
+
+  DateTime getEnd() {
+    if (this.tripPoints.isEmpty){
+      return null;
+    }
+
+    return this.tripPoints.last.dateTime;
+  }
+
   String formatDistance() =>
-      '${NumberFormat("####.00").format(this.getDistance())}km';
+      '${NumberFormat("##00.00").format(this.getDistance())}km';
 
   String formatTime() {
     var diff;
-    if(this.endTime == null){
+    if(this.getEnd() == null || this.getStart() == null) {
       diff = Duration.zero;
     } else {
-      diff = this.endTime.difference(this.startTime);
+      diff = this.getEnd().difference(this.getStart());
     }
 
-    return '${diff.inHours}:${diff.inMinutes.remainder(60)}:${diff.inSeconds.remainder(60)}';
+    return '${diff.inHours.toString().padLeft(2,"0")}:${diff.inMinutes.remainder(60).toString().padLeft(2,"0")}:${diff.inSeconds.remainder(60).toString().padLeft(2,"0")}';
   }
 
   num getFuelConsumed() {
