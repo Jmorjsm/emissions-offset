@@ -45,6 +45,11 @@ class _TripRecorderState extends State {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => this.complete(),
+
+        ),
         title: Text('Trip Recording'),
       ),
       body: Column(
@@ -122,5 +127,10 @@ class _TripRecorderState extends State {
   finish() {
     this.isRecording = false;
     this.trip.end();
+  }
+
+  void complete() {
+    this.finish();
+    Navigator.of(context).pop(this.trip);
   }
 }

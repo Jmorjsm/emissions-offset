@@ -105,21 +105,31 @@ class _TripHistoryState extends State<TripHistory> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // This will eventually navigate to the new trip page,
-          // for now it's adding a placeholder test trip to the trip store.
-          var tripStore = context.read<TripStore>();
-          //tripStore.addTestTrip();
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TripRecord(title: 'Trip Recording'),
-            ),
-          );
+          _navigateAndRecordTrip(context);
         },
         tooltip: 'New Trip',
         child: Icon(Icons.add),
       ),
     );
+  }
+
+  void _navigateAndRecordTrip (BuildContext context) async {
+    // This will eventually navigate to the new trip page,
+    // for now it's adding a placeholder test trip to the trip store.
+    var tripStore = context.read<TripStore>();
+    //tripStore.addTestTrip();
+
+    var recordedTrip = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TripRecord(title: 'Trip Recording'),
+      ),
+    );
+
+    if(recordedTrip != null){
+      setState(() {
+        tripStore.trips.add(recordedTrip);
+      });
+    }
   }
 }
