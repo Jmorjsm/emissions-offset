@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:geolocator/geolocator.dart';
 class TripRecorder {
-  registerGpsHandler(Trip trip, void Function(Position position) updateTripStateCallback) {
-    Geolocator.getPositionStream(desiredAccuracy: LocationAccuracy.best)
+   StreamSubscription<Position> registerGpsHandler(Trip trip, void Function(Position position) updateTripStateCallback) {
+     return Geolocator.getPositionStream(desiredAccuracy: LocationAccuracy.best)
         .listen(updateTripStateCallback);
   }
+
+
 
   Future<Position> determinePosition() async {
     bool serviceEnabled;

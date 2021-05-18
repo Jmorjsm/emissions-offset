@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:emissions_offset/data/trip_recorder.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,15 +18,17 @@ class TripRecord extends StatefulWidget {
 
 class _TripRecorderState extends State {
   Trip trip;
-  TripRecorder tr;
+  TripRecorder tripRecorder;
   bool isRecording = false;
   IconData fabIcon = Icons.play_arrow;
+
+  StreamSubscription<Position> gpsStreamSubscription;
 
   // Initialise this TripRecord with a new trip.
   _TripRecorderState() {
     this.trip = Trip();
-    this.tr = TripRecorder();
-    this.tr.registerGpsHandler(this.trip, this.updateTripStateCallback);
+    this.tripRecorder = TripRecorder();
+    this.gpsStreamSubscription = this.tripRecorder.registerGpsHandler(this.trip, this.updateTripStateCallback);
   }
 
   void updateTripStateCallback (Position position) {
@@ -33,6 +37,10 @@ class _TripRecorderState extends State {
         if (position != null) {
           trip.addPosition(position);
         }
+      }
+
+      if(this.trip !=null && this.trip.endTime != null){
+
       }
 
       print("isRecording: " + this.isRecording.toString());
@@ -117,15 +125,22 @@ class _TripRecorderState extends State {
   pause() {
     this.isRecording = false;
     this.fabIcon = Icons.play_arrow;
+    this.gpsStreamSubscription.pause();
   }
 
   resume() {
     this.isRecording = true;
     this.fabIcon = Icons.pause;
+    this.gpsStreamSubscription.resume();
   }
 
   finish() {
     this.isRecording = false;
+
+    if(this.gpsStreamSubscription != null){
+      this.gpsStreamSubscription.cancel();
+    }
+
     this.trip.end();
   }
 
