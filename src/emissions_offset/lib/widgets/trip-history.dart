@@ -13,11 +13,13 @@ class TripHistory extends StatefulWidget {
   TripHistory({Key key, this.title}) : super(key: key);
   final String title;
 
+
   @override
   _TripHistoryState createState() => _TripHistoryState();
 }
 
 class _TripHistoryState extends State<TripHistory> {
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -117,6 +119,7 @@ class _TripHistoryState extends State<TripHistory> {
     // This will eventually navigate to the new trip page,
     // for now it's adding a placeholder test trip to the trip store.
     var tripStore = context.read<TripStore>();
+
     //tripStore.addTestTrip();
 
     var recordedTrip = await Navigator.push(
@@ -130,6 +133,10 @@ class _TripHistoryState extends State<TripHistory> {
       setState(() {
         tripStore.trips.add(recordedTrip);
       });
+
+      tripStore.addTrip(recordedTrip);
     }
+
+
   }
 }

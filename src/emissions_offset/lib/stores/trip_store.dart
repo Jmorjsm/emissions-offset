@@ -2,18 +2,29 @@ import 'package:emissions_offset/models/point.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/trip_point.dart';
 import 'package:flutter/material.dart';
+import 'package:localstorage/localstorage.dart';
 
 class TripStore with ChangeNotifier {
   List<Trip> trips;
 
+  static String TripStoreFileName = 'emissions-offset-trips.json';
+
+  final storage = new LocalStorage(TripStoreFileName);
+
   TripStore() {
     if (trips == null){
+      var savedTrips = storage.getItem(TripStoreFileName);
+      if(savedTrips != null) {
+        this.trips = savedTrips;
+      }
+
       this.trips = [];
     }
   }
 
   void addTrip(Trip trip) {
     this.trips.add(trip);
+    this.storage.setItem("emissions-offset-TripStore", this.trips);
     debugPrint(trip.endTime.toString());
     debugPrint(this.trips.length.toString());
     notifyListeners();
