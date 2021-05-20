@@ -16,19 +16,7 @@ class TripStore with ChangeNotifier {
 
   TripStore() {
     if (trips == null){
-      var savedTrips = storage.getItem(TripStoreItemName);
-      if(savedTrips != null) {
-        debugPrint("savedTrips:");
-        debugPrint(savedTrips);
-        debugPrint("loaded saved trips:");
-        debugPrint(savedTrips.length);
-
-        this.trips = savedTrips;
-      }
-      else {
-        debugPrint("no saved trip file...");
-        this.trips = [];
-      }
+      storage.ready.then((_) => loadTrips());
     }
   }
 
@@ -62,4 +50,28 @@ class TripStore with ChangeNotifier {
 
     this.addTrip(testTrip);
   }
+
+  loadTrips() {
+    var savedTrips = storage.getItem(TripStoreItemName);
+    if(savedTrips != null) {
+      debugPrint("savedTrips:");
+      debugPrint(savedTrips);
+      debugPrint("loaded saved trips:");
+
+      this.trips = List<Trip>.from(
+          (savedTrips as List).map(
+                  (trip) => Trip.fromJson(trip)
+          )
+      );
+
+
+      debugPrint(trips.length.toString());
+
+    }
+    else {
+      debugPrint("no saved trip file...");
+      this.trips = [];
+    }
+  }
+
 }
