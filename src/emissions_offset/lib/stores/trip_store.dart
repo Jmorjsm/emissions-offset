@@ -8,23 +8,29 @@ class TripStore with ChangeNotifier {
   List<Trip> trips;
 
   static String TripStoreFileName = 'emissions-offset-trips.json';
+  static String TripStoreItemName = "trips";
 
-  final storage = new LocalStorage(TripStoreFileName);
+  final storage = LocalStorage(TripStoreFileName);
 
   TripStore() {
     if (trips == null){
-      var savedTrips = storage.getItem(TripStoreFileName);
+      var savedTrips = storage.getItem(TripStoreItemName);
       if(savedTrips != null) {
+        debugPrint("loaded saved trips:");
+        debugPrint(savedTrips.length);
+
         this.trips = savedTrips;
       }
-
-      this.trips = [];
+      else {
+        debugPrint("no saved trip file...");
+        this.trips = [];
+      }
     }
   }
 
   void addTrip(Trip trip) {
     this.trips.add(trip);
-    this.storage.setItem("emissions-offset-TripStore", this.trips);
+    this.storage.setItem(TripStoreItemName, this.trips);
     debugPrint(trip.endTime.toString());
     debugPrint(this.trips.length.toString());
     notifyListeners();

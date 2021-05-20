@@ -131,10 +131,9 @@ class _TripHistoryState extends State<TripHistory> {
 
     if(recordedTrip != null){
       setState(() {
-        tripStore.trips.add(recordedTrip);
+        tripStore.addTrip(recordedTrip);
       });
 
-      tripStore.addTrip(recordedTrip);
     }
 
 
