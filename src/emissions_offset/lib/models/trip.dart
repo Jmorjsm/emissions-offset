@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:emissions_offset/calculators/consumption_calculator.dart';
 import 'package:emissions_offset/models/vehicle.dart';
 import 'package:geolocator/geolocator.dart';
@@ -30,6 +32,34 @@ class Trip {
     this.vehicle = new Vehicle(750, 0.3);
     this.consumptionCalculator = new ConsumptionCalculator(this.vehicle);
   }
+
+  Trip.fromJson(Map<String, dynamic> json) :
+    id = json['id'],
+    tripPoints = json['tripPoints'],
+    startTime = DateTime.parse(json['startTime']),
+    endTime = DateTime.parse(json['endTime']),
+    _distanceCache = json['_distanceCache'],
+    _fuelConsumed = json['_fuelConsumed'],
+    _carbonEmissions = json['_carbonEmissions'],
+    _elapsedTime = json['_elapsedTime'],
+    _offsetCost = json['_offsetCost'],
+    _averageSpeed = json['_averageSpeed'],
+    vehicle = json['vehicle'];
+
+  Map<String, dynamic> toJson() => {
+    'id' : id,
+    'tripPoints' : jsonEncode(tripPoints),
+    'startTime' : startTime.toString(),
+    'endTime' : endTime.toString(),
+    '_distanceCache' : _distanceCache,
+    '_fuelConsumed' : _fuelConsumed,
+    '_carbonEmissions' : _carbonEmissions,
+    '_elapsedTime' : _elapsedTime,
+    '_offsetCost' : _offsetCost,
+    '_averageSpeed' : _averageSpeed,
+    'vehicle' : jsonEncode(vehicle),
+  };
+
 
   begin() {
     this.startTime = DateTime.now();

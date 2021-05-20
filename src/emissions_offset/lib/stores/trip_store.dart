@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:emissions_offset/models/point.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/trip_point.dart';
@@ -7,15 +9,17 @@ import 'package:localstorage/localstorage.dart';
 class TripStore with ChangeNotifier {
   List<Trip> trips;
 
-  static String TripStoreFileName = 'emissions-offset-trips.json';
+  static String TripStoreFileName = 'emissions-offset-trips';
   static String TripStoreItemName = "trips";
 
-  final storage = LocalStorage(TripStoreFileName);
+  final LocalStorage storage = new LocalStorage(TripStoreFileName);
 
   TripStore() {
     if (trips == null){
       var savedTrips = storage.getItem(TripStoreItemName);
       if(savedTrips != null) {
+        debugPrint("savedTrips:");
+        debugPrint(savedTrips);
         debugPrint("loaded saved trips:");
         debugPrint(savedTrips.length);
 
@@ -30,7 +34,7 @@ class TripStore with ChangeNotifier {
 
   void addTrip(Trip trip) {
     this.trips.add(trip);
-    this.storage.setItem(TripStoreItemName, this.trips);
+    this.storage.setItem(TripStoreItemName, jsonEncode(this.trips));
     debugPrint(trip.endTime.toString());
     debugPrint(this.trips.length.toString());
     notifyListeners();
