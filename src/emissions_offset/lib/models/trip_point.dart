@@ -10,15 +10,15 @@ class TripPoint {
   }
 
   TripPoint.fromJson(Map<String, dynamic> json)
-    : point = json['point'],
-      dateTime = DateTime.parse(json['dateTime']);
+      : point = Point.fromJson(json['point']),
+        dateTime = DateTime.parse(json['dateTime']);
 
-  Map<String, dynamic> toJson () => {
-    'point': point,
-    'dateTime': dateTime.toString(),
-  };
+  Map<String, dynamic> toJson() => {
+        'point': point,
+        'dateTime': dateTime.toString(),
+      };
 
-  setDateTime(DateTime dateTime){
+  setDateTime(DateTime dateTime) {
     this.dateTime = dateTime;
   }
 }

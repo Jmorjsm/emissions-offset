@@ -33,33 +33,34 @@ class Trip {
     this.consumptionCalculator = new ConsumptionCalculator(this.vehicle);
   }
 
-  Trip.fromJson(Map<String, dynamic> json) :
-    id = json['id'],
-    tripPoints = json['tripPoints'],
-    startTime = DateTime.parse(json['startTime']),
-    endTime = DateTime.parse(json['endTime']),
-    _distanceCache = json['_distanceCache'],
-    _fuelConsumed = json['_fuelConsumed'],
-    _carbonEmissions = json['_carbonEmissions'],
-    _elapsedTime = json['_elapsedTime'],
-    _offsetCost = json['_offsetCost'],
-    _averageSpeed = json['_averageSpeed'],
-    vehicle = json['vehicle'];
+  Trip.fromJson(Map<String, dynamic> jsonMap)
+      : id = jsonMap['id'],
+        tripPoints = List<TripPoint>.from(json
+            .decode(jsonMap['tripPoints'])
+            .map((tripPointJson) => TripPoint.fromJson(tripPointJson))),
+        startTime = DateTime.parse(jsonMap['startTime']),
+        endTime = DateTime.parse(jsonMap['endTime']),
+        _distanceCache = jsonMap['_distanceCache'],
+        _fuelConsumed = jsonMap['_fuelConsumed'],
+        _carbonEmissions = jsonMap['_carbonEmissions'],
+        _elapsedTime = jsonMap['_elapsedTime'],
+        _offsetCost = jsonMap['_offsetCost'],
+        _averageSpeed = jsonMap['_averageSpeed'],
+        vehicle = Vehicle.fromJson(json.decode(jsonMap['vehicle']));
 
   Map<String, dynamic> toJson() => {
-    'id' : id,
-    'tripPoints' : jsonEncode(tripPoints),
-    'startTime' : startTime.toString(),
-    'endTime' : endTime.toString(),
-    '_distanceCache' : _distanceCache,
-    '_fuelConsumed' : _fuelConsumed,
-    '_carbonEmissions' : _carbonEmissions,
-    '_elapsedTime' : _elapsedTime,
-    '_offsetCost' : _offsetCost,
-    '_averageSpeed' : _averageSpeed,
-    'vehicle' : jsonEncode(vehicle),
-  };
-
+        'id': id,
+        'tripPoints': jsonEncode(tripPoints),
+        'startTime': startTime.toString(),
+        'endTime': endTime.toString(),
+        '_distanceCache': _distanceCache,
+        '_fuelConsumed': _fuelConsumed,
+        '_carbonEmissions': _carbonEmissions,
+        '_elapsedTime': _elapsedTime,
+        '_offsetCost': _offsetCost,
+        '_averageSpeed': _averageSpeed,
+        'vehicle': jsonEncode(vehicle),
+      };
 
   begin() {
     this.startTime = DateTime.now();
@@ -157,7 +158,7 @@ class Trip {
   }
 
   DateTime getStart() {
-    if (this.tripPoints.isEmpty){
+    if (this.tripPoints.isEmpty) {
       return null;
     }
 
@@ -165,7 +166,7 @@ class Trip {
   }
 
   DateTime getEnd() {
-    if (this.tripPoints.isEmpty){
+    if (this.tripPoints.isEmpty) {
       return null;
     }
 
@@ -177,13 +178,13 @@ class Trip {
 
   String formatTime() {
     var diff;
-    if(this.getEnd() == null || this.getStart() == null) {
+    if (this.getEnd() == null || this.getStart() == null) {
       diff = Duration.zero;
     } else {
       diff = this.getEnd().difference(this.getStart());
     }
 
-    return '${diff.inHours.toString().padLeft(2,"0")}:${diff.inMinutes.remainder(60).toString().padLeft(2,"0")}:${diff.inSeconds.remainder(60).toString().padLeft(2,"0")}';
+    return '${diff.inHours.toString().padLeft(2, "0")}:${diff.inMinutes.remainder(60).toString().padLeft(2, "0")}:${diff.inSeconds.remainder(60).toString().padLeft(2, "0")}';
   }
 
   num getFuelConsumed() {

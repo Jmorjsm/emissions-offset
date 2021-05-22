@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:localstorage/localstorage.dart';
 
 class TripStore with ChangeNotifier {
-  List<Trip> trips;
+  List<Trip> trips = [];
 
   static String TripStoreFileName = 'emissions-offset-trips';
   static String TripStoreItemName = "trips";
@@ -15,7 +15,7 @@ class TripStore with ChangeNotifier {
   final LocalStorage storage = new LocalStorage(TripStoreFileName);
 
   TripStore() {
-    if (trips == null){
+    if (trips == null || trips == []) {
       storage.ready.then((_) => loadTrips());
     }
   }
@@ -27,7 +27,7 @@ class TripStore with ChangeNotifier {
     debugPrint(this.trips.length.toString());
     notifyListeners();
   }
-  
+
   void addTestTrip() {
     // 0 longitude and 1 longitude are about 111km apart
     var testPoint1 = new Point(0, 0, 0);
@@ -43,35 +43,35 @@ class TripStore with ChangeNotifier {
     testTripPoint3.setDateTime(new DateTime(2021, 1, 1, 2, 0, 0));
 
     var testTrip = new Trip();
-    testTrip.startTime = new DateTime(2020,12,31,23,59,55);
+    testTrip.startTime = new DateTime(2020, 12, 31, 23, 59, 55);
     testTrip.endTime = DateTime.now();
 
-    testTrip.tripPoints.addAll([testTripPoint1, testTripPoint2, testTripPoint3]);
+    testTrip.tripPoints
+        .addAll([testTripPoint1, testTripPoint2, testTripPoint3]);
 
     this.addTrip(testTrip);
   }
 
   loadTrips() {
-    var savedTrips = storage.getItem(TripStoreItemName);
-    if(savedTrips != null) {
+    var tripListJson = storage.getItem(TripStoreItemName);
+    if (tripListJson != null) {
       debugPrint("savedTrips:");
-      debugPrint(savedTrips);
+      debugPrint(tripListJson);
       debugPrint("loaded saved trips:");
 
-      this.trips = List<Trip>.from(
-          (savedTrips as List).map(
-                  (trip) => Trip.fromJson(trip)
-          )
-      );
+      var tripList = json.decode(tripListJson);
 
+      this.trips =
+          List<Trip>.from(tripList.map((tripJson) => Trip.fromJson(tripJson)));
 
-      debugPrint(trips.length.toString());
-
-    }
-    else {
+      if (this.trips != null) {
+        debugPrint(this.trips.length.toString());
+      }
+    } else {
       debugPrint("no saved trip file...");
       this.trips = [];
     }
+    // Tell the ui that we're done loading.
+    notifyListeners();
   }
-
 }
