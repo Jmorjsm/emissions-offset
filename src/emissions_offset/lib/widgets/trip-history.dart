@@ -13,7 +13,6 @@ class TripHistory extends StatefulWidget {
   TripHistory({Key key, this.title}) : super(key: key);
   final String title;
 
-
   @override
   _TripHistoryState createState() => _TripHistoryState();
 }

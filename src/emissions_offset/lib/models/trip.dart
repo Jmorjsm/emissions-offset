@@ -16,7 +16,7 @@ class Trip {
   DateTime endTime;
 
   num _distanceCache;
-  int _distanceCacheTripPointCount;
+  num _distanceCacheTripPointCount = 0;
 
   num _fuelConsumed;
   num _carbonEmissions;
