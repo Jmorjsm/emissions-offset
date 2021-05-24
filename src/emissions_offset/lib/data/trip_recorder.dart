@@ -2,20 +2,12 @@ import 'dart:async';
 
 import 'package:emissions_offset/models/trip.dart';
 import 'package:geolocator/geolocator.dart';
+
 class TripRecorder {
-  Begin(Trip trip) {
-  }
-
-  RegisterGpsHandler(Trip trip) {
-    Geolocator.getPositionStream(desiredAccuracy: LocationAccuracy.best).listen(
-      (Position position) {
-        if (position != null) {
-          trip.addPosition(position);
-        }
-
-        print(position == null ? 'Unknown' : position.latitude.toString() + ', '
-          + position.longitude.toString());
-      });
+  StreamSubscription<Position> registerGpsHandler(
+      Trip trip, void Function(Position position) updateTripStateCallback) {
+    return Geolocator.getPositionStream(desiredAccuracy: LocationAccuracy.best)
+        .listen(updateTripStateCallback);
   }
 
   Future<Position> determinePosition() async {

@@ -1,0 +1,151 @@
+import 'dart:async';
+
+import 'package:emissions_offset/data/trip_recorder.dart';
+import 'package:emissions_offset/models/trip.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+
+// TODO: Return the recorded trip to the trip store
+class TripRecord extends StatefulWidget {
+  TripRecord({Key key, this.title}) : super(key: key);
+  final String title;
+
+
+  @override
+  _TripRecorderState createState() => _TripRecorderState();
+}
+
+class _TripRecorderState extends State {
+  Trip trip;
+  TripRecorder tripRecorder;
+  bool isRecording = false;
+  IconData fabIcon = Icons.play_arrow;
+
+  StreamSubscription<Position> gpsStreamSubscription;
+
+  // Initialise this TripRecord with a new trip.
+  _TripRecorderState() {
+    this.trip = Trip();
+    this.tripRecorder = TripRecorder();
+    this.gpsStreamSubscription = this.tripRecorder.registerGpsHandler(this.trip, this.updateTripStateCallback);
+  }
+
+  void updateTripStateCallback (Position position) {
+    setState(() {
+      if (this.isRecording) {
+        if (position != null) {
+          trip.addPosition(position);
+        }
+      }
+
+      if(this.trip !=null && this.trip.endTime != null){
+
+      }
+
+      print("isRecording: " + this.isRecording.toString());
+      print(position == null ? 'Unknown' : position.latitude.toString() + ', '
+          + position.longitude.toString());
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => this.complete(),
+
+        ),
+        title: Text('Trip Recording'),
+      ),
+      body: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text('Distance'),
+                  subtitle: Text(trip.formatDistance()),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: Text('Time'),
+                  subtitle: Text(trip.formatTime()),
+                ),
+              ),
+            ],
+          ),
+
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text('point count'),
+                  subtitle: Text(this.trip.tripPoints.length.toString()),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: Text('Time'),
+                  subtitle: Text(trip.formatTime()),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+          child: Icon(fabIcon),
+          onPressed: () {
+            setState(() {
+              if(!this.isRecording){
+                if(trip.tripPoints.isEmpty) {
+                  this.start();
+                } else {
+                  this.resume();
+                }
+              } else {
+                this.pause();
+              }
+            });
+          }
+      ),
+    );
+  }
+
+  start() {
+    this.isRecording = true;
+    this.trip.begin();
+    this.fabIcon = Icons.pause;
+  }
+
+  pause() {
+    this.isRecording = false;
+    this.fabIcon = Icons.play_arrow;
+    this.gpsStreamSubscription.pause();
+  }
+
+  resume() {
+    this.isRecording = true;
+    this.fabIcon = Icons.pause;
+    this.gpsStreamSubscription.resume();
+  }
+
+  finish() {
+    this.isRecording = false;
+
+    if(this.gpsStreamSubscription != null){
+      this.gpsStreamSubscription.cancel();
+    }
+
+    this.trip.end();
+  }
+
+  void complete() {
+    this.finish();
+    Navigator.of(context).pop(this.trip);
+  }
+}
