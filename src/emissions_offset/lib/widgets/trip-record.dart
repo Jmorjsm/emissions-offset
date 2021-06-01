@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:emissions_offset/data/trip_recorder.dart';
 import 'package:emissions_offset/models/trip.dart';
+import 'package:emissions_offset/models/unit.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -19,6 +20,7 @@ class _TripRecorderState extends State {
   TripRecorder tripRecorder;
   bool isRecording = false;
   IconData fabIcon = Icons.play_arrow;
+  Unit unit = Unit.Kilometers;
 
   StreamSubscription<Position> gpsStreamSubscription;
 
@@ -58,7 +60,7 @@ class _TripRecorderState extends State {
               Expanded(
                 child: ListTile(
                   title: Text('Distance'),
-                  subtitle: Text(trip.formatDistance()),
+                  subtitle: Text(trip.formatDistance(unit)),
                 ),
               ),
               Expanded(
@@ -73,8 +75,8 @@ class _TripRecorderState extends State {
             children: [
               Expanded(
                 child: ListTile(
-                  title: Text('point count'),
-                  subtitle: Text(this.trip.tripPoints.length.toString()),
+                  title: Text('Average Speed'),
+                  subtitle: Text(this.trip.formatAverageSpeed(unit)),
                 ),
               ),
               Expanded(

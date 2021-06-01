@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:emissions_offset/calculators/consumption_calculator.dart';
+import 'package:emissions_offset/models/unit.dart';
 import 'package:emissions_offset/models/vehicle.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
@@ -16,7 +17,6 @@ class Trip {
   DateTime endTime;
 
   num _distanceCache;
-  num _distanceCacheTripPointCount = 0;
 
   num _fuelConsumed;
   num _carbonEmissions;
@@ -43,7 +43,6 @@ class Trip {
         _distanceCache = jsonMap['_distanceCache'],
         _fuelConsumed = jsonMap['_fuelConsumed'],
         _carbonEmissions = jsonMap['_carbonEmissions'],
-        _elapsedTime = jsonMap['_elapsedTime'],
         _offsetCost = jsonMap['_offsetCost'],
         _averageSpeed = jsonMap['_averageSpeed'],
         vehicle = Vehicle.fromJson(json.decode(jsonMap['vehicle']));
@@ -56,7 +55,6 @@ class Trip {
         '_distanceCache': _distanceCache,
         '_fuelConsumed': _fuelConsumed,
         '_carbonEmissions': _carbonEmissions,
-        '_elapsedTime': _elapsedTime,
         '_offsetCost': _offsetCost,
         '_averageSpeed': _averageSpeed,
         'vehicle': jsonEncode(vehicle),
@@ -94,10 +92,10 @@ class Trip {
           p2.longitude,
           p1.latitude,
           p1.longitude);
-      this._distanceCacheTripPointCount = this.tripPoints.length;
     }
   }
 
+  // Gets the distance in meters
   num getDistance() {
     if (this._distanceCache == null) {
       return 0;
@@ -173,23 +171,56 @@ class Trip {
   }
 
   DateTime getStart() {
-    if (this.tripPoints.isEmpty) {
-      return null;
+    if (this.tripPoints != null && this.tripPoints.isNotEmpty) {
+      this.startTime = this.tripPoints.first.dateTime;
     }
 
-    return this.tripPoints.first.dateTime;
+    return this.startTime;
   }
 
   DateTime getEnd() {
-    if (this.tripPoints.isEmpty) {
-      return null;
+    if (this.tripPoints != null && this.tripPoints.isNotEmpty) {
+      this.endTime = this.tripPoints.last.dateTime;
     }
 
-    return this.tripPoints.last.dateTime;
+    return this.endTime;
   }
 
-  String formatDistance() =>
-      '${NumberFormat("##00.00").format(this.getDistance()/1000)}km';
+  String formatDistance(Unit unit) {
+    var distanceDenominator;
+    switch(unit){
+      case Unit.Miles:
+        distanceDenominator = 1609.34;
+        break;
+      case Unit.Kilometers:
+        distanceDenominator = 1000;
+        break;
+    }
+
+    return '${NumberFormat("##00.00").format(this.getDistance()/distanceDenominator)}${formatDistanceUnit(unit)}';
+  }
+
+  String formatDistanceUnit(Unit unit){
+    switch (unit){
+      case Unit.Miles:
+        return "miles";
+        break;
+      case Unit.Kilometers:
+        return "km";
+        break;
+    }
+  }
+
+  String formatSpeedUnit(Unit unit){
+    switch (unit){
+      case Unit.Miles:
+        return "mph";
+        break;
+      case Unit.Kilometers:
+        return "kph";
+        break;
+    }
+  }
 
   String formatTime() {
     var diff;
@@ -200,6 +231,23 @@ class Trip {
     }
 
     return '${diff.inHours.toString().padLeft(2, "0")}:${diff.inMinutes.remainder(60).toString().padLeft(2, "0")}:${diff.inSeconds.remainder(60).toString().padLeft(2, "0")}';
+  }
+
+  String formatAverageSpeed(Unit unit) {
+    var speedInMetersPerSecond = this.getAverageSpeed();
+
+    const num secondsPerHour = 60*60;
+    var distanceDenominator;
+    switch(unit){
+      case Unit.Miles:
+        distanceDenominator = secondsPerHour / 1609.34;
+        break;
+      case Unit.Kilometers:
+        distanceDenominator = secondsPerHour / 1000;
+        break;
+    }
+
+    return '${NumberFormat("##00.00").format(speedInMetersPerSecond/distanceDenominator)}${this.formatSpeedUnit(unit)}';
   }
 
   num getFuelConsumed() {
@@ -219,8 +267,10 @@ class Trip {
   }
 
   Duration getElapsedTime() {
-    if (this._elapsedTime == null && this.endTime != null) {
-      this._elapsedTime = this.endTime.difference(this.startTime);
+    if (this.getEnd() == null || this.getStart() == null) {
+      this._elapsedTime = Duration.zero;
+    } else {
+      this._elapsedTime = this.getEnd().difference(this.getStart());
     }
 
     return this._elapsedTime;
@@ -234,10 +284,17 @@ class Trip {
     return this._offsetCost;
   }
 
+  // Returns the average speed in meters per second.
   num getAverageSpeed() {
-    if (this._averageSpeed == null) {
-      this._averageSpeed = this.getAverageSpeed();
+    var distanceInMeters = this.getDistance();
+    var time = getElapsedTime().inSeconds;
+
+    // Avoid division by 0
+    if(distanceInMeters == 0 || time == 0) {
+      return 0;
     }
+
+    this._averageSpeed = distanceInMeters/time;
 
     return this._averageSpeed;
   }

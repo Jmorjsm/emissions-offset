@@ -1,7 +1,7 @@
 # Todo
 ## Implementation
-- [ ] Disable saving on not-started trips
-- [ ] Fix distance recording
+- [x] Disable saving on not-started trips
+- [x] Fix distance recording
 - [ ] Warning that the app is for use by passengers only
 - [ ] Trip history
     - [ ] Show carbon emissions and offset costs in trip details

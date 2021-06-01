@@ -1,4 +1,5 @@
 import 'package:emissions_offset/models/trip.dart';
+import 'package:emissions_offset/models/unit.dart';
 import 'package:emissions_offset/stores/trip_store.dart';
 import 'package:emissions_offset/widgets/historical-statistics.dart';
 import 'package:emissions_offset/widgets/settings.dart';
@@ -18,6 +19,8 @@ class TripHistory extends StatefulWidget {
 }
 
 class _TripHistoryState extends State<TripHistory> {
+  Unit unit = Unit.Kilometers;
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -86,7 +89,7 @@ class _TripHistoryState extends State<TripHistory> {
               ),
               title: Column(
                 children: <Widget>[
-                  Text(trip.formatDistance()),
+                  Text(trip.formatDistance(unit)),
                   Text('Fuel consumed: 0L'),
                   Text('Carbon emitted: 0.0kg'),
                 ],
