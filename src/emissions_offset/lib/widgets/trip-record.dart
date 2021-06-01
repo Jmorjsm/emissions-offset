@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:emissions_offset/data/trip-formatter.dart';
 import 'package:emissions_offset/data/trip_recorder.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/unit.dart';
@@ -60,13 +61,13 @@ class _TripRecorderState extends State {
               Expanded(
                 child: ListTile(
                   title: Text('Distance'),
-                  subtitle: Text(trip.formatDistance(unit)),
+                  subtitle: Text(TripFormatter.formatDistance(trip.getDistance(), unit)),
                 ),
               ),
               Expanded(
                 child: ListTile(
                   title: Text('Time'),
-                  subtitle: Text(trip.formatTime()),
+                  subtitle: Text(TripFormatter.formatElapsedTime(trip.getElapsedTime())),
                 ),
               ),
             ],
@@ -76,13 +77,13 @@ class _TripRecorderState extends State {
               Expanded(
                 child: ListTile(
                   title: Text('Average Speed'),
-                  subtitle: Text(this.trip.formatAverageSpeed(unit)),
+                  subtitle: Text(TripFormatter.formatAverageSpeed(this.trip.getAverageSpeed(), unit)),
                 ),
               ),
               Expanded(
                 child: ListTile(
                   title: Text('Time'),
-                  subtitle: Text(trip.formatTime()),
+                  subtitle: Text(TripFormatter.formatElapsedTime(trip.getElapsedTime())),
                 ),
               ),
             ],
