@@ -1,4 +1,5 @@
 import 'package:emissions_offset/models/trip.dart';
+import 'package:emissions_offset/models/unit.dart';
 import 'package:emissions_offset/stores/trip_store.dart';
 import 'package:emissions_offset/widgets/historical-statistics.dart';
 import 'package:emissions_offset/widgets/settings.dart';
@@ -18,6 +19,7 @@ class TripHistory extends StatefulWidget {
 }
 
 class _TripHistoryState extends State<TripHistory> {
+  Unit unit = Unit.Kilometers;
 
   @override
   Widget build(BuildContext context) {
@@ -87,9 +89,9 @@ class _TripHistoryState extends State<TripHistory> {
               ),
               title: Column(
                 children: <Widget>[
-                  Text(trip.formatDistance()),
-                  Text('Fuel consumed: 0L'),
-                  Text('Carbon emitted: 0.0kg'),
+                  Text(trip.formatDistance(unit)),
+                  Text('Fuel consumed: ${trip.formatFuelConsumed()}'),
+                  Text('Carbon emitted: ${trip.formatCarbonEmissions()}'),
                 ],
                 crossAxisAlignment: CrossAxisAlignment.start,
               ),
@@ -114,13 +116,11 @@ class _TripHistoryState extends State<TripHistory> {
     );
   }
 
-  void _navigateAndRecordTrip (BuildContext context) async {
-    // This will eventually navigate to the new trip page,
-    // for now it's adding a placeholder test trip to the trip store.
+  void _navigateAndRecordTrip(BuildContext context) async {
     var tripStore = context.read<TripStore>();
 
-    //tripStore.addTestTrip();
-
+    // This navigates to the trip recording page, awaiting the returned recorded
+    // trip.
     var recordedTrip = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -128,13 +128,14 @@ class _TripHistoryState extends State<TripHistory> {
       ),
     );
 
-    if(recordedTrip != null){
-      setState(() {
-        tripStore.addTrip(recordedTrip);
-      });
-
+    // If a trip was returned, add it to the tripStore retrieved above and
+    // update the UI.
+    if (recordedTrip != null) {
+      if (recordedTrip.tripPoints != null && recordedTrip.getElapsedTime().inSeconds > 0) {
+        setState(() {
+          tripStore.addTrip(recordedTrip);
+        });
+      }
     }
-
-
   }
 }

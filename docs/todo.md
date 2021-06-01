@@ -1,4 +1,28 @@
 # Todo
+## Implementation
+- [x] Disable saving on not-started trips
+- [x] Fix distance recording
+- [ ] Warning that the app is for use by passengers only
+- [x] Trip history
+    - [x] Fix averages
+    - [x] Show carbon emissions and offset costs in trip details
+- [ ] Historical statistics view
+    - [ ] Filtering
+    - [ ] Ensure we can calculate all the stats fine
+    - [ ] Test
+- [ ] Settings
+    - [ ] List of vehicles/ some way to input weight and drag coefficient
+    - [x] Clear history option - https://pub.dev/documentation/localstorage/latest/localstorage/LocalStorage/clear.html
+        - [ ] Write about needing this in report
+        - [x] Confirmation dialog - https://stackoverflow.com/questions/53844052/how-to-make-an-alertdialog-in-flutter
+    - [ ] Units selection
+
+## Report
+- [ ] Scaffold
+- [ ] Show in methods part about experiments with flutter and geolocation.
+- [ ] Problem of recording gps requiring foreground
+- [ ] Problem of hanging when completing
+## General
 - [ ] Document fuel consumption methods
     - [ ] Read related papers
     - [ ] What components do we need to calculate
@@ -15,24 +39,24 @@
     - [ ] How to convert emissions to offset?
 
 - [ ] Design of app UI
-    - [ ] Trip recording page
-    - [ ] Trip summary page
-        - This should be the detail page for records in the trip history page table
-    - [ ] Trip history page
+    - [x] Trip recording page
+    - [x] Trip summary page
+        - [x] This should be the detail page for records in the trip history page table
+    - [x] Trip history page
     - [ ] Last week, month, year, all-time stats page
     - [ ] Settings page?
         - Units (miles/km and currencies)
     - [ ] Warning that the app is for use by passengers
 
 - [ ] Implementation and Testing
-    - [ ] Basic app bootstrap and prep for DI, etc.
-    - [ ] Basic models (trip, vehicle, point, etc.)
-    - [ ] Consumption calculation
-        - [ ] ConsumptionCalculationService
-            - [ ] Subcomponents of this
-            - [ ] Unit tests based on the maths of each component and full end-to-end calculation
-    - [ ] Trip recording
-        - [ ] Trip service
-            - [ ] Simple unit test simulating coordinates
-        - [ ] Trip recording page
-        - [ ] Trip summary page
+    - [x] Basic app bootstrap and prep for DI, etc.
+    - [x] Basic models (trip, vehicle, point, etc.)
+    - [x] Consumption calculation
+        - [x] ConsumptionCalculationService
+            - [x] Subcomponents of this
+            - [x] Unit tests based on the maths of each component and full end-to-end calculation
+    - [x] Trip recording
+        - [x] Trip ~~service~~ Store
+            - [x] Simple unit test simulating coordinates
+        - [x] Trip recording page
+        - [x] Trip summary page

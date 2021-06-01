@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:emissions_offset/calculators/consumption_calculator.dart';
+import 'package:emissions_offset/models/unit.dart';
 import 'package:emissions_offset/models/vehicle.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
@@ -16,7 +17,6 @@ class Trip {
   DateTime endTime;
 
   num _distanceCache;
-  num _distanceCacheTripPointCount = 0;
 
   num _fuelConsumed;
   num _carbonEmissions;
@@ -25,12 +25,14 @@ class Trip {
   num _averageSpeed;
 
   Vehicle vehicle;
-  ConsumptionCalculator consumptionCalculator;
+
+  // Constants
+  static const emissionsPerLitreConsumed = 2.3;
+  static const OffsetCostPerKg = 0.50;
 
   Trip() {
     this.tripPoints = [];
     this.vehicle = new Vehicle(750, 0.3);
-    this.consumptionCalculator = new ConsumptionCalculator(this.vehicle);
   }
 
   Trip.fromJson(Map<String, dynamic> jsonMap)
@@ -43,7 +45,6 @@ class Trip {
         _distanceCache = jsonMap['_distanceCache'],
         _fuelConsumed = jsonMap['_fuelConsumed'],
         _carbonEmissions = jsonMap['_carbonEmissions'],
-        _elapsedTime = jsonMap['_elapsedTime'],
         _offsetCost = jsonMap['_offsetCost'],
         _averageSpeed = jsonMap['_averageSpeed'],
         vehicle = Vehicle.fromJson(json.decode(jsonMap['vehicle']));
@@ -56,7 +57,6 @@ class Trip {
         '_distanceCache': _distanceCache,
         '_fuelConsumed': _fuelConsumed,
         '_carbonEmissions': _carbonEmissions,
-        '_elapsedTime': _elapsedTime,
         '_offsetCost': _offsetCost,
         '_averageSpeed': _averageSpeed,
         'vehicle': jsonEncode(vehicle),
@@ -68,6 +68,15 @@ class Trip {
 
   end() {
     this.endTime = DateTime.now();
+
+    // Call all the getters to ensure this is set when serialising/saving.
+    getAverageSpeed();
+    getFuelConsumed();
+    getCarbonEmissions();
+    getOffsetCost();
+
+    // Clear the trip points so this doesn't get stored.
+    //this.tripPoints = [];
   }
 
   addPoint(Point point) {
@@ -80,18 +89,35 @@ class Trip {
     var point =
         new Point(position.longitude, position.latitude, position.altitude);
     this.addPoint(point);
+
+    if(tripPoints != null && tripPoints.length > 2){
+
+      if(this._distanceCache == null){
+        _distanceCache = 0;
+      }
+
+      var p1 = this.tripPoints[this.tripPoints.length - 2].point;
+      var p2 = this.tripPoints[this.tripPoints.length - 1].point;
+      num latestDistance = Geolocator.distanceBetween(
+          p2.latitude,
+          p2.longitude,
+          p1.latitude,
+          p1.longitude);
+
+      this._distanceCache += latestDistance;
+    }
   }
 
+  // Gets the distance in meters
   num getDistance() {
-    if (this._distanceCache == null ||
-        this.tripPoints.length > this._distanceCacheTripPointCount) {
-      this._distanceCache = this.calculateDistance();
-      this._distanceCacheTripPointCount = tripPoints.length;
+    if (this._distanceCache == null) {
+      return 0;
     }
 
     return this._distanceCache;
   }
 
+  // Gets the total distance travelled in the trip in meters.
   num calculateDistance() {
     double totalDistance = 0;
     for (var pointIndex = 1;
@@ -130,7 +156,7 @@ class Trip {
             point2.point.latitude,
             point2.point.longitude);
         var deltaTime1 = point2.dateTime.difference(point1.dateTime);
-        speed1 = distance1 / deltaTime1.inHours;
+        speed1 = distance1 / (deltaTime1.inMicroseconds / Duration.microsecondsPerSecond);
       }
 
       if (pointIndex == this.tripPoints.length - 1) {
@@ -145,36 +171,69 @@ class Trip {
             point3.point.latitude,
             point3.point.longitude);
         var deltaTime2 = point3.dateTime.difference(point2.dateTime);
-        speed2 = distance2 / deltaTime2.inHours;
+        speed2 = distance2 / (deltaTime2.inMicroseconds / Duration.microsecondsPerSecond);
       }
 
       var deltaSpeed = speed2 - speed1;
       var deltaTime = time2.difference(time1);
 
-      accelerations.add(deltaSpeed / deltaTime.inHours);
+      accelerations.add(deltaSpeed / (deltaTime.inMicroseconds / Duration.microsecondsPerSecond));
     }
 
     return accelerations;
   }
 
   DateTime getStart() {
-    if (this.tripPoints.isEmpty) {
-      return null;
+    if (this.tripPoints != null && this.tripPoints.isNotEmpty) {
+      this.startTime = this.tripPoints.first.dateTime;
     }
 
-    return this.tripPoints.first.dateTime;
+    return this.startTime;
   }
 
   DateTime getEnd() {
-    if (this.tripPoints.isEmpty) {
-      return null;
+    if (this.tripPoints != null && this.tripPoints.isNotEmpty) {
+      this.endTime = this.tripPoints.last.dateTime;
     }
 
-    return this.tripPoints.last.dateTime;
+    return this.endTime;
   }
 
-  String formatDistance() =>
-      '${NumberFormat("##00.00").format(this.getDistance())}km';
+  String formatDistance(Unit unit) {
+    var distanceDenominator;
+    switch(unit){
+      case Unit.Miles:
+        distanceDenominator = 1609.34;
+        break;
+      case Unit.Kilometers:
+        distanceDenominator = 1000;
+        break;
+    }
+
+    return '${NumberFormat("##00.00").format(this.getDistance()/distanceDenominator)}${formatDistanceUnit(unit)}';
+  }
+
+  String formatDistanceUnit(Unit unit){
+    switch (unit){
+      case Unit.Miles:
+        return "miles";
+        break;
+      case Unit.Kilometers:
+        return "km";
+        break;
+    }
+  }
+
+  String formatSpeedUnit(Unit unit){
+    switch (unit){
+      case Unit.Miles:
+        return "mph";
+        break;
+      case Unit.Kilometers:
+        return "kph";
+        break;
+    }
+  }
 
   String formatTime() {
     var diff;
@@ -187,9 +246,26 @@ class Trip {
     return '${diff.inHours.toString().padLeft(2, "0")}:${diff.inMinutes.remainder(60).toString().padLeft(2, "0")}:${diff.inSeconds.remainder(60).toString().padLeft(2, "0")}';
   }
 
+  String formatAverageSpeed(Unit unit) {
+    var speedInMetersPerSecond = this.getAverageSpeed();
+
+    const num secondsPerHour = 60*60;
+    var unitMultiplier;
+    switch(unit){
+      case Unit.Miles:
+        unitMultiplier = secondsPerHour / 1609.34;
+        break;
+      case Unit.Kilometers:
+        unitMultiplier = secondsPerHour / 1000;
+        break;
+    }
+
+    return '${NumberFormat("##00.00").format(speedInMetersPerSecond*unitMultiplier)}${this.formatSpeedUnit(unit)}';
+  }
+
   num getFuelConsumed() {
     if (this._fuelConsumed == null) {
-      this._fuelConsumed = this.consumptionCalculator.calculate(this);
+      this._fuelConsumed = ConsumptionCalculator(this.vehicle).calculate(this);
     }
 
     return this._fuelConsumed;
@@ -197,15 +273,17 @@ class Trip {
 
   num getCarbonEmissions() {
     if (this._carbonEmissions == null) {
-      this._carbonEmissions = this.getFuelConsumed() * 2.3;
+      this._carbonEmissions = this.getFuelConsumed() * emissionsPerLitreConsumed;
     }
 
     return this._carbonEmissions;
   }
 
   Duration getElapsedTime() {
-    if (this._elapsedTime == null && this.endTime != null) {
-      this._elapsedTime = this.endTime.difference(this.startTime);
+    if (this.getEnd() == null || this.getStart() == null) {
+      this._elapsedTime = Duration.zero;
+    } else {
+      this._elapsedTime = this.getEnd().difference(this.getStart());
     }
 
     return this._elapsedTime;
@@ -213,17 +291,36 @@ class Trip {
 
   num getOffsetCost() {
     if (this._offsetCost == null) {
-      this._offsetCost = this.getCarbonEmissions() * 0.50;
+      this._offsetCost = this.getCarbonEmissions() * OffsetCostPerKg;
     }
 
     return this._offsetCost;
   }
 
+  // Returns the average speed in meters per second.
   num getAverageSpeed() {
-    if (this._averageSpeed == null) {
-      this._averageSpeed = this.getAverageSpeed();
+    var distanceInMeters = this.getDistance();
+    var time = getElapsedTime().inSeconds;
+
+    // Avoid division by 0
+    if(distanceInMeters == 0 || time == 0) {
+      return 0;
     }
 
+    this._averageSpeed = distanceInMeters/time;
+
     return this._averageSpeed;
+  }
+
+  String formatFuelConsumed() {
+    return '${NumberFormat("##00.00").format(getFuelConsumed())}L';
+  }
+
+  String formatCarbonEmissions() {
+    return '${NumberFormat("##00.00").format(getCarbonEmissions())}kg';
+  }
+
+  String formatOffsetCost() {
+    return '${NumberFormat("£##00.00").format(getOffsetCost())}';
   }
 }

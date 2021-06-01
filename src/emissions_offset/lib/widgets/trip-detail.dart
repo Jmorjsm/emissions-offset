@@ -1,12 +1,13 @@
 import 'package:emissions_offset/models/trip.dart';
+import 'package:emissions_offset/models/unit.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-// TODO: Pass through current trip to this page
 // TODO: Populate info fields
 // TODO: Implement delete
 class TripDetail extends StatelessWidget {
   final Trip trip;
+  final Unit unit = Unit.Kilometers;
 
   // Initialise this TripDetail with the provided trip.
   const TripDetail({Key key, this.trip}) : super(key: key);
@@ -24,13 +25,13 @@ class TripDetail extends StatelessWidget {
               Expanded(
                 child: ListTile(
                   title: Text('Fuel Consumed'),
-                  subtitle: Text('1.0L'),
+                  subtitle: Text(trip.formatFuelConsumed()),
                 ),
               ),
               Expanded(
                 child: ListTile(
                   title: Text('Carbon emitted'),
-                  subtitle: Text('2.3kg'),
+                  subtitle: Text(trip.formatCarbonEmissions()),
                 ),
               ),
             ],
@@ -40,7 +41,7 @@ class TripDetail extends StatelessWidget {
               Expanded(
                 child: ListTile(
                   title: Text('Distance'),
-                  subtitle: Text(trip.formatDistance()),
+                  subtitle: Text(trip.formatDistance(unit)),
                 ),
               ),
               Expanded(
@@ -56,13 +57,13 @@ class TripDetail extends StatelessWidget {
               Expanded(
                 child: ListTile(
                   title: Text('Offset cost'),
-                  subtitle: Text('£0.50'),
+                  subtitle: Text(trip.formatOffsetCost()),
                 ),
               ),
               Expanded(
                 child: ListTile(
                   title: Text('Average speed'),
-                  subtitle: Text('40km/h'),
+                  subtitle: Text(trip.formatAverageSpeed(unit)),
                 ),
               ),
             ],
