@@ -6,11 +6,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
-// TODO: Return the recorded trip to the trip store
 class TripRecord extends StatefulWidget {
   TripRecord({Key key, this.title}) : super(key: key);
   final String title;
-
 
   @override
   _TripRecorderState createState() => _TripRecorderState();
@@ -28,24 +26,18 @@ class _TripRecorderState extends State {
   _TripRecorderState() {
     this.trip = Trip();
     this.tripRecorder = TripRecorder();
-    this.gpsStreamSubscription = this.tripRecorder.registerGpsHandler(this.trip, this.updateTripStateCallback);
+    this.gpsStreamSubscription = this
+        .tripRecorder
+        .registerGpsHandler(this.trip, this.updateTripStateCallback);
   }
 
-  void updateTripStateCallback (Position position) {
+  void updateTripStateCallback(Position position) {
     setState(() {
       if (this.isRecording) {
         if (position != null) {
           trip.addPosition(position);
         }
       }
-
-      if(this.trip !=null && this.trip.endTime != null){
-
-      }
-
-      print("isRecording: " + this.isRecording.toString());
-      print(position == null ? 'Unknown' : position.latitude.toString() + ', '
-          + position.longitude.toString());
     });
   }
 
@@ -56,7 +48,6 @@ class _TripRecorderState extends State {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () => this.complete(),
-
         ),
         title: Text('Trip Recording'),
       ),
@@ -78,7 +69,6 @@ class _TripRecorderState extends State {
               ),
             ],
           ),
-
           Row(
             children: [
               Expanded(
@@ -101,8 +91,8 @@ class _TripRecorderState extends State {
           child: Icon(fabIcon),
           onPressed: () {
             setState(() {
-              if(!this.isRecording){
-                if(trip.tripPoints.isEmpty) {
+              if (!this.isRecording) {
+                if (trip.tripPoints.isEmpty) {
                   this.start();
                 } else {
                   this.resume();
@@ -111,8 +101,7 @@ class _TripRecorderState extends State {
                 this.pause();
               }
             });
-          }
-      ),
+          }),
     );
   }
 
@@ -137,7 +126,7 @@ class _TripRecorderState extends State {
   finish() {
     this.isRecording = false;
 
-    if(this.gpsStreamSubscription != null){
+    if (this.gpsStreamSubscription != null) {
       this.gpsStreamSubscription.cancel();
     }
 
