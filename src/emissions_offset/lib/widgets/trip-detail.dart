@@ -25,13 +25,13 @@ class TripDetail extends StatelessWidget {
               Expanded(
                 child: ListTile(
                   title: Text('Fuel Consumed'),
-                  subtitle: Text('1.0L'),
+                  subtitle: Text(trip.formatFuelConsumed()),
                 ),
               ),
               Expanded(
                 child: ListTile(
                   title: Text('Carbon emitted'),
-                  subtitle: Text('2.3kg'),
+                  subtitle: Text(trip.formatCarbonEmissions()),
                 ),
               ),
             ],
@@ -57,7 +57,7 @@ class TripDetail extends StatelessWidget {
               Expanded(
                 child: ListTile(
                   title: Text('Offset cost'),
-                  subtitle: Text('£0.50'),
+                  subtitle: Text(trip.formatOffsetCost()),
                 ),
               ),
               Expanded(

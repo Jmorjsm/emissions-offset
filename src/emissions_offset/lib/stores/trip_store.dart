@@ -19,11 +19,8 @@ class TripStore with ChangeNotifier {
   }
 
   void addTrip(Trip trip) {
-    trip.tripPoints = [];
     this.trips.add(trip);
     this.storage.setItem(TripStoreItemName, jsonEncode(this.trips));
-    debugPrint(trip.endTime.toString());
-    debugPrint(this.trips.length.toString());
     notifyListeners();
   }
 

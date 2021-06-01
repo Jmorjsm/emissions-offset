@@ -4,6 +4,7 @@
 - [x] Fix distance recording
 - [ ] Warning that the app is for use by passengers only
 - [ ] Trip history
+    - [ ] Fix averages
     - [ ] Show carbon emissions and offset costs in trip details
 - [ ] Historical statistics view
     - [ ] Filtering
@@ -11,9 +12,9 @@
     - [ ] Test
 - [ ] Settings
     - [ ] List of vehicles/ some way to input weight and drag coefficient
-    - [ ] Clear history option - https://pub.dev/documentation/localstorage/latest/localstorage/LocalStorage/clear.html
+    - [x] Clear history option - https://pub.dev/documentation/localstorage/latest/localstorage/LocalStorage/clear.html
         - [ ] Write about needing this in report
-        - [ ] Confirmation dialog - https://stackoverflow.com/questions/53844052/how-to-make-an-alertdialog-in-flutter
+        - [x] Confirmation dialog - https://stackoverflow.com/questions/53844052/how-to-make-an-alertdialog-in-flutter
     - [ ] Units selection
 
 ## Report

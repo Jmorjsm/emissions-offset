@@ -90,8 +90,8 @@ class _TripHistoryState extends State<TripHistory> {
               title: Column(
                 children: <Widget>[
                   Text(trip.formatDistance(unit)),
-                  Text('Fuel consumed: 0L'),
-                  Text('Carbon emitted: 0.0kg'),
+                  Text('Fuel consumed: ${trip.formatFuelConsumed()}'),
+                  Text('Carbon emitted: ${trip.formatCarbonEmissions()}'),
                 ],
                 crossAxisAlignment: CrossAxisAlignment.start,
               ),
@@ -131,8 +131,7 @@ class _TripHistoryState extends State<TripHistory> {
     // If a trip was returned, add it to the tripStore retrieved above and
     // update the UI.
     if (recordedTrip != null) {
-      if (recordedTrip.tripPoints != null &&
-          recordedTrip.tripPoints.length > 0) {
+      if (recordedTrip.tripPoints != null && recordedTrip.getElapsedTime().inSeconds > 0) {
         setState(() {
           tripStore.addTrip(recordedTrip);
         });
