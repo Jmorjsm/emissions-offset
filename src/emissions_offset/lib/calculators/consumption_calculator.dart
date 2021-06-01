@@ -14,7 +14,7 @@ class ConsumptionCalculator {
   }
 
   double calculate(Trip trip) {
-    num totalConsumption = 0;
+    double totalConsumption = 0;
     var accelerations = trip.getAccelerations();
     for (var pointIndex = 1;
         pointIndex < trip.tripPoints.length - 1;
