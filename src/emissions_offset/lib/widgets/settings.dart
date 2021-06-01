@@ -45,7 +45,9 @@ class _SettingsState extends State<Settings> {
       onPressed: () {
         // Delete all trips
         var tripStore = context.read<TripStore>();
-        tripStore.storage.clear();
+        setState(() {
+          tripStore.clear();
+        });
         // Close the dialog
         Navigator.of(context).pop();
       },

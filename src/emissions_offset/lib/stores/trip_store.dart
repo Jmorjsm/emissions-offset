@@ -72,4 +72,10 @@ class TripStore with ChangeNotifier {
     // Tell the ui that we're done loading.
     notifyListeners();
   }
+
+  clear() {
+    this.storage.clear();
+    this.trips = [];
+    notifyListeners();
+  }
 }
