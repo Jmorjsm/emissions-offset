@@ -13,6 +13,7 @@
     - [ ] List of vehicles/ some way to input weight and drag coefficient
     - [ ] Clear history option - https://pub.dev/documentation/localstorage/latest/localstorage/LocalStorage/clear.html
         - [ ] Write about needing this in report
+        - [ ] Confirmation dialog - https://stackoverflow.com/questions/53844052/how-to-make-an-alertdialog-in-flutter
     - [ ] Units selection
 
 ## Report
