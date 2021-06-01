@@ -43,7 +43,7 @@ class _TripHistoryState extends State<TripHistory> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => HistoricalStatistics(),
+                      builder: (context) => HistoricalStatistics(allTrips: context.read<TripStore>().trips),
                     ),
                   );
                   break;

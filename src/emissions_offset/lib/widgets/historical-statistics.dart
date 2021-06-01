@@ -21,7 +21,7 @@ class HistoricalTotals {
   final CarbonEmissions;
   final Distance;
   final AverageSpeed;
-  final ElapsedTime;
+  final Duration ElapsedTime;
   final OffsetCost;
 
   HistoricalTotals(this.FuelConsumed, this.CarbonEmissions, this.Distance, this.AverageSpeed, this.ElapsedTime, this.OffsetCost);
@@ -29,15 +29,18 @@ class HistoricalTotals {
   static HistoricalTotals fromTrips(List<Trip> trips){
     var fuelConsumed = trips.fold(0, (a, b) => a + b.getFuelConsumed());
     var carbonEmissions = trips.fold(0, (a, b) => a + b.getCarbonEmissions());
-    var distance = trips.fold(0, (a, b) => a + b.getDistance());
+    num distance = trips.fold(0, (a, b) => a + b.getDistance());
 
-    var averageSpeed = 0;
+    num averageSpeed;
     if(trips.length > 0) {
-       averageSpeed = trips.fold(0, (a, b) => a + b.getAverageSpeed()) /
-          trips.length;
+      num totalAvgSpeed = trips.fold(0, (a, b) => a + b.getAverageSpeed());
+       averageSpeed =  totalAvgSpeed / trips.length;
+    }
+    else {
+      averageSpeed = 0;
     }
 
-    var elapsedTime = trips.fold(0, (a, b) => a + b.getElapsedTime());
+    Duration elapsedTime = trips.fold(Duration.zero, (a, b) => a + b.getElapsedTime());
     var offsetCost = trips.fold(0, (a, b) => a + b.getOffsetCost());
 
     return HistoricalTotals(fuelConsumed, carbonEmissions, distance, averageSpeed, elapsedTime, offsetCost);
