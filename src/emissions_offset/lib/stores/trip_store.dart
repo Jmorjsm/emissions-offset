@@ -15,9 +15,7 @@ class TripStore with ChangeNotifier {
   final LocalStorage storage = new LocalStorage(TripStoreFileName);
 
   TripStore() {
-    //if (trips == null || trips == []) {
     storage.ready.then((_) => loadTrips());
-    //}
   }
 
   void addTrip(Trip trip) {

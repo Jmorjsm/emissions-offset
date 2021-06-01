@@ -80,18 +80,33 @@ class Trip {
     var point =
         new Point(position.longitude, position.latitude, position.altitude);
     this.addPoint(point);
+
+    if(tripPoints != null && tripPoints.length > 2){
+
+      if(this._distanceCache == null){
+        _distanceCache = 0;
+      }
+
+      var p1 = this.tripPoints[this.tripPoints.length - 2].point;
+      var p2 = this.tripPoints[this.tripPoints.length - 1].point;
+      this._distanceCache += Geolocator.distanceBetween(
+          p2.latitude,
+          p2.longitude,
+          p1.latitude,
+          p1.longitude);
+      this._distanceCacheTripPointCount = this.tripPoints.length;
+    }
   }
 
   num getDistance() {
-    if (this._distanceCache == null ||
-        this.tripPoints.length > this._distanceCacheTripPointCount) {
-      this._distanceCache = this.calculateDistance();
-      this._distanceCacheTripPointCount = tripPoints.length;
+    if (this._distanceCache == null) {
+      return 0;
     }
 
     return this._distanceCache;
   }
 
+  // Gets the total distance travelled in the trip in meters.
   num calculateDistance() {
     double totalDistance = 0;
     for (var pointIndex = 1;
@@ -174,7 +189,7 @@ class Trip {
   }
 
   String formatDistance() =>
-      '${NumberFormat("##00.00").format(this.getDistance())}km';
+      '${NumberFormat("##00.00").format(this.getDistance()/1000)}km';
 
   String formatTime() {
     var diff;
