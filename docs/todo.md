@@ -3,9 +3,9 @@
 - [x] Disable saving on not-started trips
 - [x] Fix distance recording
 - [ ] Warning that the app is for use by passengers only
-- [ ] Trip history
-    - [ ] Fix averages
-    - [ ] Show carbon emissions and offset costs in trip details
+- [x] Trip history
+    - [x] Fix averages
+    - [x] Show carbon emissions and offset costs in trip details
 - [ ] Historical statistics view
     - [ ] Filtering
     - [ ] Ensure we can calculate all the stats fine
@@ -20,7 +20,8 @@
 ## Report
 - [ ] Scaffold
 - [ ] Show in methods part about experiments with flutter and geolocation.
-
+- [ ] Problem of recording gps requiring foreground
+- [ ] Problem of hanging when completing
 ## General
 - [ ] Document fuel consumption methods
     - [ ] Read related papers
