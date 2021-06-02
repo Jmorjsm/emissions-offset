@@ -199,70 +199,6 @@ class Trip {
     return this.endTime;
   }
 
-  String formatDistance(Unit unit) {
-    var distanceDenominator;
-    switch(unit){
-      case Unit.Miles:
-        distanceDenominator = 1609.34;
-        break;
-      case Unit.Kilometers:
-        distanceDenominator = 1000;
-        break;
-    }
-
-    return '${NumberFormat("##00.00").format(this.getDistance()/distanceDenominator)}${formatDistanceUnit(unit)}';
-  }
-
-  String formatDistanceUnit(Unit unit){
-    switch (unit){
-      case Unit.Miles:
-        return "miles";
-        break;
-      case Unit.Kilometers:
-        return "km";
-        break;
-    }
-  }
-
-  String formatSpeedUnit(Unit unit){
-    switch (unit){
-      case Unit.Miles:
-        return "mph";
-        break;
-      case Unit.Kilometers:
-        return "kph";
-        break;
-    }
-  }
-
-  String formatTime() {
-    var diff;
-    if (this.getEnd() == null || this.getStart() == null) {
-      diff = Duration.zero;
-    } else {
-      diff = this.getEnd().difference(this.getStart());
-    }
-
-    return '${diff.inHours.toString().padLeft(2, "0")}:${diff.inMinutes.remainder(60).toString().padLeft(2, "0")}:${diff.inSeconds.remainder(60).toString().padLeft(2, "0")}';
-  }
-
-  String formatAverageSpeed(Unit unit) {
-    var speedInMetersPerSecond = this.getAverageSpeed();
-
-    const num secondsPerHour = 60*60;
-    var unitMultiplier;
-    switch(unit){
-      case Unit.Miles:
-        unitMultiplier = secondsPerHour / 1609.34;
-        break;
-      case Unit.Kilometers:
-        unitMultiplier = secondsPerHour / 1000;
-        break;
-    }
-
-    return '${NumberFormat("##00.00").format(speedInMetersPerSecond*unitMultiplier)}${this.formatSpeedUnit(unit)}';
-  }
-
   num getFuelConsumed() {
     if (this._fuelConsumed == null) {
       this._fuelConsumed = ConsumptionCalculator(this.vehicle).calculate(this);
@@ -310,17 +246,5 @@ class Trip {
     this._averageSpeed = distanceInMeters/time;
 
     return this._averageSpeed;
-  }
-
-  String formatFuelConsumed() {
-    return '${NumberFormat("##00.00").format(getFuelConsumed())}L';
-  }
-
-  String formatCarbonEmissions() {
-    return '${NumberFormat("##00.00").format(getCarbonEmissions())}kg';
-  }
-
-  String formatOffsetCost() {
-    return '${NumberFormat("£##00.00").format(getOffsetCost())}';
   }
 }

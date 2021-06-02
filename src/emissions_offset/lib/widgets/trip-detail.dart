@@ -1,9 +1,9 @@
+import 'package:emissions_offset/data/trip-formatter.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/unit.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-// TODO: Populate info fields
 // TODO: Implement delete
 class TripDetail extends StatelessWidget {
   final Trip trip;
@@ -25,13 +25,13 @@ class TripDetail extends StatelessWidget {
               Expanded(
                 child: ListTile(
                   title: Text('Fuel Consumed'),
-                  subtitle: Text(trip.formatFuelConsumed()),
+                  subtitle: Text(TripFormatter.FormatFuelConsumed(trip.getFuelConsumed())),
                 ),
               ),
               Expanded(
                 child: ListTile(
                   title: Text('Carbon emitted'),
-                  subtitle: Text(trip.formatCarbonEmissions()),
+                  subtitle: Text(TripFormatter.FormatCarbonEmissions(trip.getCarbonEmissions())),
                 ),
               ),
             ],
@@ -41,13 +41,13 @@ class TripDetail extends StatelessWidget {
               Expanded(
                 child: ListTile(
                   title: Text('Distance'),
-                  subtitle: Text(trip.formatDistance(unit)),
+                  subtitle: Text(TripFormatter.formatAverageSpeed(trip.getAverageSpeed(), unit)),
                 ),
               ),
               Expanded(
                 child: ListTile(
                   title: Text('Time'),
-                  subtitle: Text(trip.formatTime()),
+                  subtitle: Text(TripFormatter.formatElapsedTime(trip.getElapsedTime())),
                 ),
               ),
             ],
@@ -57,13 +57,13 @@ class TripDetail extends StatelessWidget {
               Expanded(
                 child: ListTile(
                   title: Text('Offset cost'),
-                  subtitle: Text(trip.formatOffsetCost()),
+                  subtitle: Text(TripFormatter.FormatOffsetCost(trip.getOffsetCost())),
                 ),
               ),
               Expanded(
                 child: ListTile(
                   title: Text('Average speed'),
-                  subtitle: Text(trip.formatAverageSpeed(unit)),
+                  subtitle: Text(TripFormatter.formatAverageSpeed(trip.getAverageSpeed(), unit)),
                 ),
               ),
             ],

@@ -1,3 +1,4 @@
+import 'package:emissions_offset/data/trip-formatter.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/unit.dart';
 import 'package:emissions_offset/stores/trip_store.dart';
@@ -42,7 +43,7 @@ class _TripHistoryState extends State<TripHistory> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => HistoricalStatistics(),
+                      builder: (context) => HistoricalStatistics(allTrips: context.read<TripStore>().trips),
                     ),
                   );
                   break;
@@ -89,9 +90,9 @@ class _TripHistoryState extends State<TripHistory> {
               ),
               title: Column(
                 children: <Widget>[
-                  Text(trip.formatDistance(unit)),
-                  Text('Fuel consumed: ${trip.formatFuelConsumed()}'),
-                  Text('Carbon emitted: ${trip.formatCarbonEmissions()}'),
+                  Text(TripFormatter.formatDistance(trip.getDistance(), unit)),
+                  Text('Fuel consumed: ${TripFormatter.FormatFuelConsumed(trip.getFuelConsumed())}'),
+                  Text('Carbon emitted: ${TripFormatter.FormatCarbonEmissions(trip.getCarbonEmissions())}'),
                 ],
                 crossAxisAlignment: CrossAxisAlignment.start,
               ),
