@@ -19,7 +19,7 @@ class AppSettingsStore with ChangeNotifier {
   // Save the app settings to local storage
   saveSettings(AppSettings appSettings){
     this.appSettings = appSettings;
-    this.storage.setItem(_appSettingsItemName, jsonEncode(this.appSettings));
+    this.storage.setItem(_appSettingsItemName, this.appSettings.toJson());
     notifyListeners();
   }
 
@@ -28,7 +28,7 @@ class AppSettingsStore with ChangeNotifier {
     var appSettingsJson = storage.getItem(_appSettingsItemName);
     if (appSettingsJson != null) {
       debugPrint("settings:");
-      debugPrint(appSettingsJson);
+      debugPrint(appSettingsJson.toString());
       debugPrint("loaded saved trips:");
 
       this.appSettings = AppSettings.fromJson(appSettingsJson);
