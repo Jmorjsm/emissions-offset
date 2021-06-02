@@ -54,6 +54,7 @@ class _HistoricalStatisticsState extends State<HistoricalStatistics>{
 
   HistoricalTotals totals;
 
+
   _HistoricalStatisticsState(this.allTrips){
     totals = HistoricalTotals.fromTrips(allTrips);
   }
@@ -62,7 +63,7 @@ class _HistoricalStatisticsState extends State<HistoricalStatistics>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Trip Detail'),
+        title: Text('Historical statistics'),
       ),
       body: Column(
         children: [
@@ -116,6 +117,51 @@ class _HistoricalStatisticsState extends State<HistoricalStatistics>{
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        // TODO: Try and get the position here
+        onPressed: () {
+          showFilterOptions(context);
+        },
+        tooltip: 'Filter',
+        child: Icon(Icons.filter_alt),
+      )
     );
+  }
+
+  void showFilterOptions(BuildContext context) async {
+    await showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(0.0, 0.0, 25.0, 25.0),
+      items: {'Last week', 'Last month', 'Last year', 'All time'}.map((String choice) {
+          return PopupMenuItem<String>(
+            value: choice,
+            child: Text(choice),
+          );
+        }).toList()
+        ).then((value) {
+      filterAndCalculateTotals(context, value);
+    });
+  }
+
+  void filterAndCalculateTotals(BuildContext context, String value) {
+    List<Trip> tripsInRange;
+    switch(value){
+      case 'Last week':
+        tripsInRange = this.allTrips.where((element) => element.endTime.isAfter(DateTime.now().subtract(Duration(days: 7)))).toList();
+        break;
+      case 'Last month':
+        tripsInRange = this.allTrips.where((element) => element.endTime.isAfter(DateTime.now().subtract(Duration(days: 30)))).toList();
+        break;
+      case 'Last year':
+        tripsInRange = this.allTrips.where((element) => element.endTime.isAfter(DateTime.now().subtract(Duration(days: 365)))).toList();
+        break;
+      case 'All time':
+        tripsInRange = this.allTrips;
+        break;
+    }
+
+    setState(() {
+      totals = totals = HistoricalTotals.fromTrips(tripsInRange);
+    });
   }
 }
