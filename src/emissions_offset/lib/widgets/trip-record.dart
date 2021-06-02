@@ -61,13 +61,13 @@ class _TripRecorderState extends State {
               Expanded(
                 child: ListTile(
                   title: Text('Distance'),
-                  subtitle: Text(TripFormatter.formatDistance(trip.getDistance(), unit)),
+                  subtitle: Text(TripFormatter.formatDistance(this.trip.getDistance(), unit)),
                 ),
               ),
               Expanded(
                 child: ListTile(
                   title: Text('Time'),
-                  subtitle: Text(TripFormatter.formatElapsedTime(trip.getElapsedTime())),
+                  subtitle: Text(TripFormatter.formatElapsedTime(this.trip.getElapsedTime())),
                 ),
               ),
             ],
@@ -83,7 +83,7 @@ class _TripRecorderState extends State {
               Expanded(
                 child: ListTile(
                   title: Text('Time'),
-                  subtitle: Text(TripFormatter.formatElapsedTime(trip.getElapsedTime())),
+                  subtitle: Text(TripFormatter.formatElapsedTime(this.trip.getElapsedTime())),
                 ),
               ),
             ],
@@ -95,7 +95,7 @@ class _TripRecorderState extends State {
           onPressed: () {
             setState(() {
               if (!this.isRecording) {
-                if (trip.tripPoints.isEmpty) {
+                if (this.trip.tripPoints.isEmpty) {
                   this.start();
                 } else {
                   this.resume();

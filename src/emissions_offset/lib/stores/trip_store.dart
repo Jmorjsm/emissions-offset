@@ -9,10 +9,10 @@ import 'package:localstorage/localstorage.dart';
 class TripStore with ChangeNotifier {
   List<Trip> trips = [];
 
-  static const String TripStoreFileName = 'emissions-offset-trips';
-  static const String TripStoreItemName = "trips";
+  static const String _tripStoreFileName = 'emissions-offset-trips';
+  static const String _tripStoreItemName = "trips";
 
-  final LocalStorage storage = new LocalStorage(TripStoreFileName);
+  final LocalStorage storage = new LocalStorage(_tripStoreFileName);
 
   TripStore() {
     storage.ready.then((_) => loadTrips());
@@ -20,7 +20,7 @@ class TripStore with ChangeNotifier {
 
   void addTrip(Trip trip) {
     this.trips.add(trip);
-    this.storage.setItem(TripStoreItemName, jsonEncode(this.trips));
+    this.storage.setItem(_tripStoreItemName, jsonEncode(this.trips));
     notifyListeners();
   }
 
@@ -49,7 +49,7 @@ class TripStore with ChangeNotifier {
   }
 
   loadTrips() {
-    var tripListJson = storage.getItem(TripStoreItemName);
+    var tripListJson = storage.getItem(_tripStoreItemName);
     if (tripListJson != null) {
       debugPrint("savedTrips:");
       debugPrint(tripListJson);
@@ -72,7 +72,7 @@ class TripStore with ChangeNotifier {
   }
 
   clear() {
-    this.storage.deleteItem(TripStoreItemName);
+    this.storage.deleteItem(_tripStoreItemName);
     this.trips = [];
     notifyListeners();
   }

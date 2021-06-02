@@ -1,6 +1,7 @@
 import 'package:emissions_offset/data/trip-formatter.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/unit.dart';
+import 'package:emissions_offset/stores/app_settings_store.dart';
 import 'package:emissions_offset/stores/trip_store.dart';
 import 'package:emissions_offset/widgets/historical-statistics.dart';
 import 'package:emissions_offset/widgets/settings.dart';
@@ -20,8 +21,6 @@ class TripHistory extends StatefulWidget {
 }
 
 class _TripHistoryState extends State<TripHistory> {
-  Unit unit = Unit.Kilometers;
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -68,8 +67,8 @@ class _TripHistoryState extends State<TripHistory> {
           ),
         ],
       ),
-      body: Consumer<TripStore>(
-        builder: (context, tripStore, child) => ListView.builder(
+      body: Consumer2<TripStore, AppSettingsStore>(
+        builder: (context, tripStore, appsettings, child) => ListView.builder(
           itemCount: tripStore.trips.length,
           itemBuilder: (context, index) {
             var trip = tripStore.trips[index];
@@ -90,7 +89,7 @@ class _TripHistoryState extends State<TripHistory> {
               ),
               title: Column(
                 children: <Widget>[
-                  Text(TripFormatter.formatDistance(trip.getDistance(), unit)),
+                  Text(TripFormatter.formatDistance(trip.getDistance(), appsettings.appSettings.unit)),
                   Text('Fuel consumed: ${TripFormatter.FormatFuelConsumed(trip.getFuelConsumed())}'),
                   Text('Carbon emitted: ${TripFormatter.FormatCarbonEmissions(trip.getCarbonEmissions())}'),
                 ],
