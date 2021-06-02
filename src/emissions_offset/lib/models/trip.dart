@@ -85,7 +85,6 @@ class Trip {
   }
 
   addPosition(Position position) {
-    // TODO: Make a factory method to convert position to point
     var point =
         new Point(position.longitude, position.latitude, position.altitude);
     this.addPoint(point);

@@ -55,7 +55,6 @@ class _HistoricalStatisticsState extends State<HistoricalStatistics>{
 
   HistoricalTotals totals;
 
-
   _HistoricalStatisticsState(this.allTrips){
     totals = HistoricalTotals.fromTrips(allTrips);
   }
