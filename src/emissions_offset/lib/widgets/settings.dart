@@ -35,25 +35,67 @@ class _SettingsState extends State<Settings> {
           ),
           body: Column(
             children: [
+              // Distance
               Row(
                 children: [
                   Expanded(
                     child: Text('Distance unit:'),
                   ),
                   Expanded(
-                    child:  _UnitSelect(
+                    child: _UnitSelect(
                         appSettings: appSettings,
                       ),
                   ),
                 ],
               ),
+              // Offset cost
               Row(
                 children: [
-                  TextButton(
-                    onPressed: () {
-                      showDeleteConfirmationDialog(context);
-                    },
-                    child: Text("Delete all recorded trips"))
+                  Expanded(
+                    child: Text('Offset cost (£):'),
+                  ),
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: appSettingsStore.appSettings.offsetCostPerTonne.toString(),
+                      onChanged: (text) {
+                        var value = num.tryParse(text);
+                        appSettingsStore.appSettings.offsetCostPerTonne = value;
+                      },
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                ],
+              ),
+
+              // Offset multiplier
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Offset multiplier:'),
+                  ),
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: appSettingsStore.appSettings.offsetCostMultiplier.toString(),
+                      onChanged: (text) {
+                        var value = num.tryParse(text);
+                        appSettingsStore.appSettings.offsetCostMultiplier = value;
+                      },
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                ],
+              ),
+
+
+              Row(
+                children: [
+                  Expanded(child:
+                    TextButton(
+                      onPressed: () {
+                        showDeleteConfirmationDialog(context);
+                      },
+                      child: Text("Delete all recorded trips"))
+                  ),
                 ],
               ),
             ]
