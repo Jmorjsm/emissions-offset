@@ -4,6 +4,7 @@ import 'package:emissions_offset/models/unit.dart';
 import 'package:emissions_offset/stores/trip_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:provider/provider.dart';
 
 class HistoricalStatistics extends StatefulWidget {
@@ -117,30 +118,42 @@ class _HistoricalStatisticsState extends State<HistoricalStatistics>{
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        // TODO: Try and get the position here
-        onPressed: () {
-          showFilterOptions(context);
-        },
+      // using flutter_speed_dial package as described here: https://www.youtube.com/watch?v=1FmATI4rOBc
+      floatingActionButton: SpeedDial(
         tooltip: 'Filter',
-        child: Icon(Icons.filter_alt),
+        icon: Icons.filter_alt,
+        children: [
+          SpeedDialChild(
+            child: Icon(Icons.view_week),
+            label: 'Last week',
+            onTap: () {
+              filterAndCalculateTotals(context, 'Last week');
+            },
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.view_module),
+            label: 'Last month',
+            onTap: () {
+              filterAndCalculateTotals(context, 'Last month');
+            },
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.calendar_today_sharp),
+            label: 'Last year',
+            onTap: () {
+              filterAndCalculateTotals(context, 'Last year');
+            },
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.all_inclusive),
+            label: 'All time',
+            onTap: () {
+              filterAndCalculateTotals(context, 'All time');
+            },
+          ),
+        ],
       )
     );
-  }
-
-  void showFilterOptions(BuildContext context) async {
-    await showMenu(
-      context: context,
-      position: RelativeRect.fromLTRB(0.0, 0.0, 25.0, 25.0),
-      items: {'Last week', 'Last month', 'Last year', 'All time'}.map((String choice) {
-          return PopupMenuItem<String>(
-            value: choice,
-            child: Text(choice),
-          );
-        }).toList()
-        ).then((value) {
-      filterAndCalculateTotals(context, value);
-    });
   }
 
   void filterAndCalculateTotals(BuildContext context, String value) {
