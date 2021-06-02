@@ -37,8 +37,13 @@ class _SettingsState extends State<Settings> {
             children: [
               Row(
                 children: [
-                  _UnitSelect(
-                    appSettings: appSettings,
+                  Expanded(
+                    child: Text('Distance unit:'),
+                  ),
+                  Expanded(
+                    child:  _UnitSelect(
+                        appSettings: appSettings,
+                      ),
                   ),
                 ],
               ),
@@ -126,20 +131,23 @@ class __UnitSelectState extends State<_UnitSelect> {
       Unit.Miles: 'Miles',
     };
 
-    return PopupMenuButton<Unit>(
-      child: Text(selectedUnit.toString()),
-      onSelected: (unit){
+    return DropdownButton<Unit>(
+      value: selectedUnit,
+      icon: const Icon(Icons.arrow_downward),
+      iconSize: 24,
+      elevation: 16,
+      onChanged: (unit){
         setState(() {
           selectedUnit = unit;
           widget.appSettings.unit = unit;
         });
       },
-      itemBuilder: (context) => <PopupMenuItem<Unit>>[
-        PopupMenuItem<Unit>(
+      items: <DropdownMenuItem<Unit>>[
+        DropdownMenuItem<Unit>(
           value: Unit.Kilometers,
           child: Text(unitNames[Unit.Kilometers]),
         ),
-        PopupMenuItem<Unit>(
+        DropdownMenuItem<Unit>(
           value: Unit.Miles,
           child: Text(unitNames[Unit.Miles]),
         ),

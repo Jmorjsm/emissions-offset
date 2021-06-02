@@ -21,12 +21,14 @@ class AppSettings {
   // Deserialise from json
   AppSettings.fromJson(Map<String, dynamic> jsonMap)
       : offsetCostPerTonne = jsonMap['offsetCostPerTonne'],
+        offsetCostMultiplier = jsonMap['offsetCostMultiplier'],
         unit = unitFromJson(jsonMap['unit']),
         vehicle = Vehicle.fromJson(json.decode(jsonMap['vehicle']));
 
   // Serialise to json
   Map<String, dynamic> toJson() => {
     'offsetCostPerTonne': offsetCostPerTonne,
+    'offsetCostMultiplier': offsetCostMultiplier,
     'unit': unit.toString(),
     'vehicle': jsonEncode(vehicle),
   };
