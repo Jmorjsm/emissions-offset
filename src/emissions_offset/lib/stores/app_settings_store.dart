@@ -7,10 +7,10 @@ import 'package:localstorage/localstorage.dart';
 class AppSettingsStore with ChangeNotifier {
   AppSettings appSettings;
 
-  static const String AppSettingsFileName = 'emissions-offset-app-settings';
-  static const String AppSettingsItemName = "app-settings";
+  static const String _appSettingsFileName = 'emissions-offset-app-settings';
+  static const String _appSettingsItemName = "app-settings";
 
-  final LocalStorage storage = new LocalStorage(AppSettingsFileName);
+  final LocalStorage storage = new LocalStorage(_appSettingsFileName);
 
   AppSettingsStore() {
     storage.ready.then((_) => loadAppSettings());
@@ -19,13 +19,13 @@ class AppSettingsStore with ChangeNotifier {
   // Save the app settings to local storage
   saveSettings(AppSettings appSettings){
     this.appSettings = appSettings;
-    this.storage.setItem(AppSettingsItemName, jsonEncode(this.appSettings));
+    this.storage.setItem(_appSettingsItemName, jsonEncode(this.appSettings));
     notifyListeners();
   }
 
   // Load the app settings from local storage
   loadAppSettings() {
-    var appSettingsJson = storage.getItem(AppSettingsItemName);
+    var appSettingsJson = storage.getItem(_appSettingsItemName);
     if (appSettingsJson != null) {
       debugPrint("settings:");
       debugPrint(appSettingsJson);
