@@ -19,29 +19,40 @@ class ConsumptionCalculator {
     for (var pointIndex = 1;
         pointIndex < trip.tripPoints.length - 1;
         pointIndex++) {
+      // scalar for engine efficiency
+      var s = 0.2;
+
+      // Get the first point
       var p1 = trip.tripPoints[pointIndex - 1];
+      // Get the second point
       var p2 = trip.tripPoints[pointIndex];
 
       // get the input parameters for the numerator
-      var k1 = this.vehicle.mass;
+      var m = this.vehicle.mass;
 
       // get the input parameters for the denominator
       var a = accelerations[pointIndex - 1];
-      var k2 = 9.81 * this.calculateRoadGrade(p1.point, p2.point);
-      var k3 = this.vehicle.dragCoefficient;
+      var g = 9.81;
+      var grade = this.calculateRoadGrade(p1.point, p2.point);
+      var dragCoefficient = this.vehicle.dragCoefficient;
+      var rollingResistanceCoefficient = 0.02;
       var vs = this.calculateSpeed(p1, p2);
+      var vs2 = vs*vs;
 
       // calculate this denominator
-      var denominator = a + k2 + (k3 * (vs * vs));
+      var denominator = m * (a + g * sin(grade) + rollingResistanceCoefficient + dragCoefficient + vs2);
 
       // calculate this consumption rate value and add to the ongoing values list
-      var consumptionRate = k1 / denominator;
+      var consumptionRate = s / denominator;
+
       num distance = Geolocator.distanceBetween(
           p2.point.latitude,
           p2.point.longitude,
           p1.point.latitude,
           p1.point.longitude);
-      if(distance > 0) {
+
+      // Only include if consumption rate is positive
+      if(distance > 0 && consumptionRate > 0) {
         var consumedFuel = consumptionRate / distance;
         totalConsumption += consumedFuel;
       }
@@ -64,7 +75,7 @@ class ConsumptionCalculator {
     var distance = Geolocator.distanceBetween(
         point2.latitude, point2.longitude, point1.latitude, point1.longitude);
 
-    return 100 * deltaAltitude / distance;
+    return atan(deltaAltitude / distance);
   }
 
   // Returns the speed in meters per second

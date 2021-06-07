@@ -41,7 +41,7 @@ class TripDetail extends StatelessWidget {
               Expanded(
                 child: ListTile(
                   title: Text('Distance'),
-                  subtitle: Text(TripFormatter.formatAverageSpeed(trip.getAverageSpeed(), unit)),
+                  subtitle: Text(TripFormatter.formatDistance(trip.getDistance(), unit)),
                 ),
               ),
               Expanded(
