@@ -21,6 +21,7 @@ Trip : double getDistance()
 Trip : double[] getSpeeds()
 Trip : double[] getAccelerations()
 Trip "1" *-- "1..*" TripPoint
+Trip "1" *-- "1" Vehicle
 'TODO add TripDetails and TripSummary inheriting from Trip
 
 class TripSummary
@@ -37,7 +38,6 @@ TripDetails : double averageSpeed
 TripDetails <|-- TripSummary
 
 'Trip recording
-'TODO add communication here with geolocator module
 class TripRecorder
 TripRecorder : begin(Trip)
 TripRecorder : pause(Trip)
@@ -63,7 +63,6 @@ ConsumptionCalculator : double calculate(params Trip[])
 ConsumptionCalculator : double calculateRoadGrade(Point point1, Point point2) {
 ConsumptionCalculator : double calculateSpeed(TripPoint tripPoint1, TripPoint tripPoint2) {
 ConsumptionCalculator <-- Trip
-ConsumptionCalculator <-- Vehicle
 
 'Offset calculation
 class EmissionsCalculator

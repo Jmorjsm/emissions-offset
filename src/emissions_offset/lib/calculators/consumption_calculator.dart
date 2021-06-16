@@ -4,6 +4,7 @@ import 'package:emissions_offset/models/point.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/trip_point.dart';
 import 'package:emissions_offset/models/vehicle.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 class ConsumptionCalculator {
@@ -16,6 +17,7 @@ class ConsumptionCalculator {
   double calculate(Trip trip) {
     double totalConsumption = 0;
     var accelerations = trip.getAccelerations();
+    var VSPs = [];
     for (var pointIndex = 1;
         pointIndex < trip.tripPoints.length - 1;
         pointIndex++) {
@@ -30,12 +32,20 @@ class ConsumptionCalculator {
       // get the input parameters for the numerator
       var m = this.vehicle.mass;
 
-      // get the input parameters for the denominator
+      // acceleration in m/s/s
       var a = accelerations[pointIndex - 1];
+
+      // acceleration due to gravity (m/s/s)
       var g = 9.81;
+
+      // road gradient (radians)
       var grade = this.calculateRoadGrade(p1.point, p2.point);
+
+      // road gradient
       var dragCoefficient = this.vehicle.dragCoefficient;
       var rollingResistanceCoefficient = 0.02;
+
+      // speed in m/s
       var vs = this.calculateSpeed(p1, p2);
       var vs2 = vs*vs;
 
@@ -56,8 +66,15 @@ class ConsumptionCalculator {
         var consumedFuel = consumptionRate / distance;
         totalConsumption += consumedFuel;
       }
-    }
 
+      // VSP
+      var vs3 = vs * vs * vs;
+      var VSP = vs * (a + g * sin(grade) + rollingResistanceCoefficient) + dragCoefficient * vs3;
+
+      VSPs.add(VSP);
+   }
+
+    debugPrint(VSPs.toString());
     return totalConsumption;
   }
 
