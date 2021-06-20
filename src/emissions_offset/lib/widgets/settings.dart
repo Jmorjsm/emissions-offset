@@ -86,7 +86,6 @@ class _SettingsState extends State<Settings> {
                 ],
               ),
 
-
               Row(
                 children: [
                   Expanded(child:
