@@ -2,7 +2,7 @@
 ## Implementation
 - [x] Disable saving on not-started trips
 - [x] Fix distance recording
-- [ ] Warning that the app is for use by passengers only
+- [x] Warning that the app is for use by passengers only
 - [ ] Trip delete
 - [x] Trip history
     - [x] Fix averages
@@ -11,8 +11,9 @@
     - [x] Filtering
     - [ ] Ensure we can calculate all the stats fine
     - [x] Test
-- [ ] Settings
-    - [ ] List of vehicles/some way to input weight, drag coefficient, fuel type
+- [x] Settings
+    - [ ] List of vehicles
+    - [x] some way to input weight, drag coefficient, fuel type
     - [x] Units selection
     - [x] Offset multiplier
     - [x] Clear history option - https://pub.dev/documentation/localstorage/latest/localstorage/LocalStorage/clear.html
