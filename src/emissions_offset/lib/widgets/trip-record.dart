@@ -25,6 +25,35 @@ class _TripRecorderState extends State {
 
   StreamSubscription<Position> gpsStreamSubscription;
 
+  @override
+  void initState() {
+    super.initState();
+
+    var dismissButton = TextButton(
+      child: Text("Dismiss"),
+      onPressed: () {
+        // Close the dialog
+        Navigator.of(context).pop();
+      },
+    );
+
+    AlertDialog confirmDialog = AlertDialog(
+      title: Text("Warning to user"),
+      content:
+      Text("This application must only be used passengers of vehicles. To reduce the risk of distracting the driver, this application must never be used by the driver."),
+      actions: [dismissButton],
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return confirmDialog;
+        }
+      );
+    });
+  }
+
   // Initialise this TripRecord with a new trip.
   _TripRecorderState() {
     this.trip = Trip();
