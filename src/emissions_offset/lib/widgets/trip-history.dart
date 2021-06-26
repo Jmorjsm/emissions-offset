@@ -70,6 +70,8 @@ class _TripHistoryState extends State<TripHistory> {
       body: Consumer2<TripStore, AppSettingsStore>(
         builder: (context, tripStore, appsettings, child) => ListView.builder(
           itemCount: tripStore.trips.length,
+          // reverse so trips are displayed in reverse chronological order (newest first)
+          reverse: true,
           itemBuilder: (context, index) {
             var trip = tripStore.trips[index];
             var date = DateFormat.yMd().format(trip.startTime);
