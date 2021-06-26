@@ -12,9 +12,9 @@
     - [ ] Ensure we can calculate all the stats fine
     - [x] Test
 - [ ] Settings
-    - [ ] List of vehicles/ some way to input weight and drag coefficient
-    - [ ] Units selection
-    - [ ] Offset multiplier
+    - [ ] List of vehicles/some way to input weight, drag coefficient, fuel type
+    - [x] Units selection
+    - [x] Offset multiplier
     - [x] Clear history option - https://pub.dev/documentation/localstorage/latest/localstorage/LocalStorage/clear.html
         - [ ] Write about needing this in report
         - [x] Confirmation dialog - https://stackoverflow.com/questions/53844052/how-to-make-an-alertdialog-in-flutter
