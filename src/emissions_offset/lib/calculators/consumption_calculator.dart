@@ -1,11 +1,9 @@
 import 'dart:math';
-
 import 'package:emissions_offset/models/fuel_type.dart';
 import 'package:emissions_offset/models/point.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/trip_point.dart';
 import 'package:emissions_offset/models/vehicle.dart';
-import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 class ConsumptionCalculator {
@@ -29,11 +27,9 @@ class ConsumptionCalculator {
     for (var pointIndex = 1;
         pointIndex < trip.tripPoints.length - 1;
         pointIndex++) {
-      // scalar for engine efficiency
-      var s = 0.2;
-
       // Get the first point
       var p1 = trip.tripPoints[pointIndex - 1];
+
       // Get the second point
       var p2 = trip.tripPoints[pointIndex];
 
@@ -55,11 +51,10 @@ class ConsumptionCalculator {
 
       // speed in m/s
       var vs = this.calculateSpeed(p1, p2);
-      var vs2 = vs*vs;
-
-      // VSP
       var vs3 = vs * vs * vs;
-      var vspPower = vs * (a + g * sin(grade) + rollingResistanceCoefficient) + dragCoefficient * vs3;
+
+      // VSP formula
+      var vspPower = (vs * (a + g * sin(grade) + rollingResistanceCoefficient) + dragCoefficient * vs3) / m;
       var vspMode = getVspMode(vspPower);
       var instantaneousConsumption = getConsumptionForMode(vspMode, this.vehicle.fuelType);
 
