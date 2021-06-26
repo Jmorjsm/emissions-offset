@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:emissions_offset/data/trip-formatter.dart';
+import 'package:emissions_offset/data/trip_formatter.dart';
 import 'package:emissions_offset/data/trip_recorder.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/unit.dart';

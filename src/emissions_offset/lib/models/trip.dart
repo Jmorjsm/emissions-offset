@@ -6,6 +6,7 @@ import 'package:emissions_offset/models/vehicle.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 
+import 'fuel_type.dart';
 import 'point.dart';
 import 'trip_point.dart';
 
@@ -32,7 +33,7 @@ class Trip {
 
   Trip() {
     this.tripPoints = [];
-    this.vehicle = new Vehicle(750, 0.3);
+    this.vehicle = new Vehicle(750, 0.3, FuelType.Gasoline);
   }
 
   Trip.fromJson(Map<String, dynamic> jsonMap)

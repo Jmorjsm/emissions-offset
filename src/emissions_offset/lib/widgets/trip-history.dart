@@ -1,4 +1,4 @@
-import 'package:emissions_offset/data/trip-formatter.dart';
+import 'package:emissions_offset/data/trip_formatter.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/unit.dart';
 import 'package:emissions_offset/stores/app_settings_store.dart';

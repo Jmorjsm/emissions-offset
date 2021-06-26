@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:emissions_offset/models/fuel_type.dart';
 import 'package:emissions_offset/models/point.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/trip_point.dart';
@@ -10,6 +11,13 @@ import 'package:geolocator/geolocator.dart';
 class ConsumptionCalculator {
   Vehicle vehicle;
 
+  // array containing the upper bounds of VSP power value buckets
+  static const List<int> VspModeBoundaries = [-2, 0, 1, 4, 7, 10, 13, 16, 19, 23, 28, 33, 39];
+
+  static const Map<FuelType, List<num>> VspConsumptions = {
+    FuelType.Gasoline: [0.01244, 0.01866, 0.020526, 0.0622, 0.08397, 0.11507, 0.14306, 0.16794, 0.19904, 0.22703, 0.27368, 0.28101, 0.31394, 0.34566],
+    FuelType.Diesel: [0.01116, 0.01674, 0.018414, 0.0558, 0.07533, 0.10323, 0.12834, 0.15066, 0.17856, 0.20367, 0.24552, 0.25209, 0.28163, 0.31009],
+  };
   ConsumptionCalculator(Vehicle vehicle) {
     this.vehicle = vehicle;
   }
@@ -17,7 +25,7 @@ class ConsumptionCalculator {
   double calculate(Trip trip) {
     double totalConsumption = 0;
     var accelerations = trip.getAccelerations();
-    var VSPs = [];
+
     for (var pointIndex = 1;
         pointIndex < trip.tripPoints.length - 1;
         pointIndex++) {
@@ -49,38 +57,41 @@ class ConsumptionCalculator {
       var vs = this.calculateSpeed(p1, p2);
       var vs2 = vs*vs;
 
-      // calculate this denominator
-      var denominator = m * (a + g * sin(grade) + rollingResistanceCoefficient + dragCoefficient + vs2);
-
-      // calculate this consumption rate value and add to the ongoing values list
-      var consumptionRate = s / denominator;
-
-      num distance = Geolocator.distanceBetween(
-          p2.point.latitude,
-          p2.point.longitude,
-          p1.point.latitude,
-          p1.point.longitude);
-
-      // Only include if consumption rate is positive
-      if(distance > 0 && consumptionRate > 0) {
-        var consumedFuel = consumptionRate / distance;
-        totalConsumption += consumedFuel;
-      }
-
       // VSP
       var vs3 = vs * vs * vs;
-      var VSP = vs * (a + g * sin(grade) + rollingResistanceCoefficient) + dragCoefficient * vs3;
+      var vspPower = vs * (a + g * sin(grade) + rollingResistanceCoefficient) + dragCoefficient * vs3;
+      var vspMode = getVspMode(vspPower);
+      var instantaneousConsumption = getConsumptionForMode(vspMode, this.vehicle.fuelType);
 
-      VSPs.add(VSP);
+      totalConsumption += instantaneousConsumption;
    }
 
-    debugPrint(VSPs.toString());
     return totalConsumption;
+  }
+
+  int getVspMode(num vspPower){
+    int vspMode = 1;
+    // Loop through the lower bounds for each vsp bucket, incrementing the mode value until the power is less than the upper bound
+    for (var vspIndex = 0; vspIndex < VspModeBoundaries.length; ++vspIndex){
+      if (vspPower < VspModeBoundaries[vspIndex]){
+        break;
+      }
+
+      ++vspMode;
+    }
+
+    return vspMode;
+  }
+
+  num getConsumptionForMode(int vspMode, FuelType fuelType) {
+    // subtract 1 to get the index
+    var modeIndex = vspMode - 1;
+    return VspConsumptions[fuelType][modeIndex];
   }
 
   double calculateMultiple(List<Trip> trips) {
     double total = 0;
-    for (var tripIndex = 0; tripIndex < trips.length; tripIndex++) {
+    for (var tripIndex = 0; tripIndex < trips.length; ++tripIndex) {
       total += this.calculate(trips[tripIndex]);
     }
     return total / (trips.length);
