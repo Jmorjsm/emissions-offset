@@ -34,93 +34,159 @@ class _SettingsState extends State<Settings> {
               onPressed: () => this.saveSettings(context,appSettingsStore),
             ),
           ),
-          body: Column(
-            children: [
-              // Vehicle section
-              Row(
+          body: Padding(
+            padding: EdgeInsets.all(12.0),
+            child:
+              Column(
                 children: [
-                  Expanded(
-                      child: Text('Vehicle')
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text('Fuel type:'),
-                  ),
-                  Expanded(
-                    child: _FuelTypeSelect(
-                      appSettings: appSettings,
-                    ),
-                  ),
-                ],
-              ),
-
-              // Distance unit
-              Row(
-                children: [
-                  Expanded(
-                    child: Text('Distance unit:'),
-                  ),
-                  Expanded(
-                    child: _UnitSelect(
-                        appSettings: appSettings,
+                  // Vehicle section
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Text(
+                            'Vehicle settings',
+                            style: Theme.of(context).textTheme.headline6,
+                          )
                       ),
+                    ],
                   ),
-                ],
-              ),
-              // Offsetting
-              // Offset cost
-              Row(
-                children: [
-                  Expanded(
-                    child: Text('Offset cost (£):'),
+                  // Drag Coefficient
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Drag Coefficient:'),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: appSettingsStore.appSettings.vehicle.dragCoefficient.toString(),
+                          onChanged: (text) {
+                            var value = num.tryParse(text);
+                            appSettingsStore.appSettings.vehicle.dragCoefficient = value;
+                          },
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    child: TextFormField(
-                      initialValue: appSettingsStore.appSettings.offsetCostPerTonne.toString(),
-                      onChanged: (text) {
-                        var value = num.tryParse(text);
-                        appSettingsStore.appSettings.offsetCostPerTonne = value;
-                      },
-                      keyboardType: TextInputType.number,
-                    ),
+                  // Mass
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Mass (kg):'),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: appSettingsStore.appSettings.vehicle.mass.toString(),
+                          onChanged: (text) {
+                            var value = num.tryParse(text);
+                            appSettingsStore.appSettings.vehicle.mass = value;
+                          },
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              // Offset multiplier
-              Row(
-                children: [
-                  Expanded(
-                    child: Text('Offset multiplier:'),
+                  // Fuel type
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Fuel type:'),
+                      ),
+                      Expanded(
+                        child: _FuelTypeSelect(
+                          appSettings: appSettings,
+                        ),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    child: TextFormField(
-                      initialValue: appSettingsStore.appSettings.offsetCostMultiplier.toString(),
-                      onChanged: (text) {
-                        var value = num.tryParse(text);
-                        appSettingsStore.appSettings.offsetCostMultiplier = value;
-                      },
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                ],
-              ),
 
-              Row(
-                children: [
-                  Expanded(child:
-                    TextButton(
-                      onPressed: () {
-                        showDeleteConfirmationDialog(context);
-                      },
-                      child: Text("Delete all recorded trips"))
+
+                  // Offsetting
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Text(
+                            'Offset settings',
+                            style: Theme.of(context).textTheme.headline6,
+                          )
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ]
-          )
+                  // Offset cost
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Offset cost (£):'),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: appSettingsStore.appSettings.offsetCostPerTonne.toString(),
+                          onChanged: (text) {
+                            var value = num.tryParse(text);
+                            appSettingsStore.appSettings.offsetCostPerTonne = value;
+                          },
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Offset multiplier
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Offset multiplier:'),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: appSettingsStore.appSettings.offsetCostMultiplier.toString(),
+                          onChanged: (text) {
+                            var value = num.tryParse(text);
+                            appSettingsStore.appSettings.offsetCostMultiplier = value;
+                          },
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Other
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Text(
+                            'Other',
+                            style: Theme.of(context).textTheme.headline6,
+                          )
+                      ),
+                    ],
+                  ),
+                  // Distance unit
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Distance unit:'),
+                      ),
+                      Expanded(
+                        child: _UnitSelect(
+                          appSettings: appSettings,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(child:
+                        TextButton(
+                          onPressed: () {
+                            showDeleteConfirmationDialog(context);
+                          },
+                          child: Text("Delete all recorded trips"))
+                      ),
+                    ],
+                  ),
+                ]
+              )
+            )
           );
         },
       );
