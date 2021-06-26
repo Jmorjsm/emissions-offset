@@ -3,7 +3,7 @@
 - [x] Disable saving on not-started trips
 - [x] Fix distance recording
 - [x] Warning that the app is for use by passengers only
-- [ ] Trip delete
+- [x] Trip delete
 - [x] Trip history
     - [x] Fix averages
     - [x] Show carbon emissions and offset costs in trip details

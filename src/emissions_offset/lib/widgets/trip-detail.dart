@@ -86,6 +86,12 @@ class TripDetail extends StatelessWidget {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+          child: Icon(CupertinoIcons.trash),
+          onPressed: () {
+            // Navigate back and say we did want to delete the trip.
+            Navigator.of(context).pop(true);
+          }),
     );
   }
 }

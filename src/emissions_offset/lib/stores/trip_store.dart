@@ -48,6 +48,12 @@ class TripStore with ChangeNotifier {
     this.addTrip(testTrip);
   }
 
+  void deleteTrip(int index) {
+    this.trips.removeAt(index);
+    this.storage.setItem(_tripStoreItemName, jsonEncode(this.trips));
+    notifyListeners();
+  }
+
   loadTrips() {
     var tripListJson = storage.getItem(_tripStoreItemName);
     if (tripListJson != null) {

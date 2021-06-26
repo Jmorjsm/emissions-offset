@@ -77,13 +77,19 @@ class _TripHistoryState extends State<TripHistory> {
             var date = DateFormat.yMd().format(trip.startTime);
             var time = DateFormat.Hm().format(trip.startTime);
             return ListTile(
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                var shouldDelete = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => TripDetail(trip: trip),
+                    builder:(context) => TripDetail(trip: trip),
                   ),
                 );
+
+                if(shouldDelete){
+                  setState(() {
+                    tripStore.deleteTrip(index);
+                  });
+                }
               },
               leading: Icon(
                 Icons.directions_car,
