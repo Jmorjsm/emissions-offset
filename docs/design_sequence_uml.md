@@ -1,3 +1,4 @@
+## Trip Recording sequence diagram.
 @startuml
 actor user as user
 entity trip as trip
