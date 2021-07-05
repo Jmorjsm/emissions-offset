@@ -77,7 +77,7 @@ class Trip {
     getOffsetCost();
 
     // Clear the trip points so this doesn't get stored.
-    //this.tripPoints = [];
+    this.tripPoints = [];
   }
 
   addPoint(Point point) {
