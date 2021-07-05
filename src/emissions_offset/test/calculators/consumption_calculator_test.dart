@@ -1,4 +1,4 @@
-import 'package:emissions_offset/calculators/consumption_calculator.dart';
+import 'package:emissions_offset/data/consumption_calculator.dart';
 import 'package:emissions_offset/models/fuel_type.dart';
 import 'package:emissions_offset/models/point.dart';
 import 'package:emissions_offset/models/trip.dart';

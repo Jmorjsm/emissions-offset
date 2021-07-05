@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:emissions_offset/calculators/consumption_calculator.dart';
+import 'package:emissions_offset/data/consumption_calculator.dart';
 import 'package:emissions_offset/models/unit.dart';
 import 'package:emissions_offset/models/vehicle.dart';
 import 'package:geolocator/geolocator.dart';

@@ -22,7 +22,6 @@ Trip : double[] getSpeeds()
 Trip : double[] getAccelerations()
 Trip "1" *-- "1..*" TripPoint
 Trip "1" *-- "1" Vehicle
-'TODO add TripDetails and TripSummary inheriting from Trip
 
 class TripSummary
 TripSummary : double distance
@@ -74,6 +73,5 @@ class OffsetCalculator
 OffsetCalculator : double calculateOffsetCost(Trip)
 OffsetCalculator : double calculateOffsetCost(params Trip[])
 OffsetCalculator --> EmissionsCalculator
-
 
 @enduml
