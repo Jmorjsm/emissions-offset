@@ -1,6 +1,4 @@
 import 'package:emissions_offset/data/trip_formatter.dart';
-import 'package:emissions_offset/models/trip.dart';
-import 'package:emissions_offset/models/unit.dart';
 import 'package:emissions_offset/stores/app_settings_store.dart';
 import 'package:emissions_offset/stores/trip_store.dart';
 import 'package:emissions_offset/widgets/historical-statistics.dart';
@@ -23,16 +21,8 @@ class TripHistory extends StatefulWidget {
 class _TripHistoryState extends State<TripHistory> {
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
         actions: [
           PopupMenuButton<String>(

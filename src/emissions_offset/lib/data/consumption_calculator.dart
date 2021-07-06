@@ -89,10 +89,10 @@ class ConsumptionCalculator {
     for (var tripIndex = 0; tripIndex < trips.length; ++tripIndex) {
       total += this.calculate(trips[tripIndex]);
     }
+
     return total / (trips.length);
   }
 
-  //todo make private
   double calculateRoadGrade(Point point1, Point point2) {
     var deltaAltitude = point2.altitude - point1.altitude;
     var distance = Geolocator.distanceBetween(
