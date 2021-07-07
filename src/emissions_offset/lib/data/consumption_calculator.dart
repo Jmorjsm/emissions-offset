@@ -9,13 +9,6 @@ import 'package:geolocator/geolocator.dart';
 class ConsumptionCalculator {
   Vehicle vehicle;
 
-  // array containing the upper bounds of VSP power value buckets
-  static const List<int> VspModeBoundaries = [-2, 0, 1, 4, 7, 10, 13, 16, 19, 23, 28, 33, 39];
-
-  static const Map<FuelType, List<num>> VspConsumptions = {
-    FuelType.Gasoline: [0.01244, 0.01866, 0.020526, 0.0622, 0.08397, 0.11507, 0.14306, 0.16794, 0.19904, 0.22703, 0.27368, 0.28101, 0.31394, 0.34566],
-    FuelType.Diesel: [0.01116, 0.01674, 0.018414, 0.0558, 0.07533, 0.10323, 0.12834, 0.15066, 0.17856, 0.20367, 0.24552, 0.25209, 0.28163, 0.31009],
-  };
   ConsumptionCalculator(Vehicle vehicle) {
     this.vehicle = vehicle;
   }
@@ -64,6 +57,8 @@ class ConsumptionCalculator {
     return totalConsumption;
   }
 
+  // array containing the upper bounds of VSP power value buckets
+  static const List<int> VspModeBoundaries = [-2, 0, 1, 4, 7, 10, 13, 16, 19, 23, 28, 33, 39];
   int getVspMode(num vspPower){
     int vspMode = 1;
     // Loop through the lower bounds for each vsp bucket, incrementing the mode value until the power is less than the upper bound
@@ -78,6 +73,10 @@ class ConsumptionCalculator {
     return vspMode;
   }
 
+  static const Map<FuelType, List<num>> VspConsumptions = {
+    FuelType.Gasoline: [0.01244, 0.01866, 0.020526, 0.0622, 0.08397, 0.11507, 0.14306, 0.16794, 0.19904, 0.22703, 0.27368, 0.28101, 0.31394, 0.34566],
+    FuelType.Diesel: [0.01116, 0.01674, 0.018414, 0.0558, 0.07533, 0.10323, 0.12834, 0.15066, 0.17856, 0.20367, 0.24552, 0.25209, 0.28163, 0.31009],
+  };
   num getConsumptionForMode(int vspMode, FuelType fuelType) {
     // subtract 1 to get the index
     var modeIndex = vspMode - 1;
@@ -94,9 +93,13 @@ class ConsumptionCalculator {
   }
 
   double calculateRoadGrade(Point point1, Point point2) {
-    var deltaAltitude = point2.altitude - point1.altitude;
     var distance = Geolocator.distanceBetween(
         point2.latitude, point2.longitude, point1.latitude, point1.longitude);
+    if(distance == 0){
+      return 0;
+    }
+
+    var deltaAltitude = point2.altitude - point1.altitude;
 
     return atan(deltaAltitude / distance);
   }
