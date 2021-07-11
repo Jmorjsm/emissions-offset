@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:emissions_offset/data/consumption_calculator.dart';
+import 'package:emissions_offset/models/app_settings.dart';
 import 'package:emissions_offset/models/unit.dart';
 import 'package:emissions_offset/models/vehicle.dart';
 import 'package:geolocator/geolocator.dart';
@@ -27,9 +28,27 @@ class Trip {
 
   Vehicle vehicle;
 
-  // Constants
-  static const emissionsPerLitreConsumed = 2.3;
-  static const OffsetCostPerKg = 0.50;
+  // Multipliers
+  // Emissions in kg per litre of fuel consumed, from
+  // https://www.nrcan.gc.ca/sites/www.nrcan.gc.ca/files/oee/pdf/transportation/fuel-efficient-technologies/autosmart_factsheet_6_e.pdf
+  num emissionsPerLitreConsumed = 2.3;
+  num OffsetCostPerKg = 0.50;
+
+  Trip.withSettings(AppSettings settings) {
+    this.tripPoints = [];
+    this.vehicle = settings.vehicle;
+    switch (vehicle.fuelType) {
+      case FuelType.Gasoline:
+        emissionsPerLitreConsumed = 2.29;
+        break;
+      case FuelType.Diesel:
+        emissionsPerLitreConsumed = 2.66;
+        break;
+    }
+
+    this.OffsetCostPerKg =
+        (settings.offsetCostPerTonne / 1000) * settings.offsetCostMultiplier;
+  }
 
   Trip() {
     this.tripPoints = [];
@@ -90,19 +109,15 @@ class Trip {
         new Point(position.longitude, position.latitude, position.altitude);
     this.addPoint(point);
 
-    if(tripPoints != null && tripPoints.length > 2){
-
-      if(this._distanceCache == null){
+    if (tripPoints != null && tripPoints.length > 2) {
+      if (this._distanceCache == null) {
         _distanceCache = 0;
       }
 
       var p1 = this.tripPoints[this.tripPoints.length - 2].point;
       var p2 = this.tripPoints[this.tripPoints.length - 1].point;
       num latestDistance = Geolocator.distanceBetween(
-          p2.latitude,
-          p2.longitude,
-          p1.latitude,
-          p1.longitude);
+          p2.latitude, p2.longitude, p1.latitude, p1.longitude);
 
       this._distanceCache += latestDistance;
     }
@@ -156,7 +171,8 @@ class Trip {
             point2.point.latitude,
             point2.point.longitude);
         var deltaTime1 = point2.dateTime.difference(point1.dateTime);
-        speed1 = distance1 / (deltaTime1.inMicroseconds / Duration.microsecondsPerSecond);
+        speed1 = distance1 /
+            (deltaTime1.inMicroseconds / Duration.microsecondsPerSecond);
       }
 
       if (pointIndex == this.tripPoints.length - 1) {
@@ -171,13 +187,15 @@ class Trip {
             point3.point.latitude,
             point3.point.longitude);
         var deltaTime2 = point3.dateTime.difference(point2.dateTime);
-        speed2 = distance2 / (deltaTime2.inMicroseconds / Duration.microsecondsPerSecond);
+        speed2 = distance2 /
+            (deltaTime2.inMicroseconds / Duration.microsecondsPerSecond);
       }
 
       var deltaSpeed = speed2 - speed1;
       var deltaTime = time2.difference(time1);
 
-      accelerations.add(deltaSpeed / (deltaTime.inMicroseconds / Duration.microsecondsPerSecond));
+      accelerations.add(deltaSpeed /
+          (deltaTime.inMicroseconds / Duration.microsecondsPerSecond));
     }
 
     return accelerations;
@@ -209,7 +227,8 @@ class Trip {
 
   num getCarbonEmissions() {
     if (this._carbonEmissions == null) {
-      this._carbonEmissions = this.getFuelConsumed() * emissionsPerLitreConsumed;
+      this._carbonEmissions =
+          this.getFuelConsumed() * emissionsPerLitreConsumed;
     }
 
     return this._carbonEmissions;
@@ -239,11 +258,11 @@ class Trip {
     var time = getElapsedTime().inSeconds;
 
     // Avoid division by 0
-    if(distanceInMeters == 0 || time == 0) {
+    if (distanceInMeters == 0 || time == 0) {
       return 0;
     }
 
-    this._averageSpeed = distanceInMeters/time;
+    this._averageSpeed = distanceInMeters / time;
 
     return this._averageSpeed;
   }

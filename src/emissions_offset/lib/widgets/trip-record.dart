@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:emissions_offset/data/trip_formatter.dart';
 import 'package:emissions_offset/data/trip_recorder.dart';
+import 'package:emissions_offset/models/app_settings.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/unit.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,11 +10,13 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
 class TripRecord extends StatefulWidget {
-  TripRecord({Key key, this.title}) : super(key: key);
+  var appSettings;
+
+  TripRecord({Key key, this.title, this.appSettings}) : super(key: key);
   final String title;
 
   @override
-  _TripRecorderState createState() => _TripRecorderState();
+  _TripRecorderState createState() => _TripRecorderState(this.appSettings);
 }
 
 class _TripRecorderState extends State {
@@ -39,24 +42,23 @@ class _TripRecorderState extends State {
 
     AlertDialog confirmDialog = AlertDialog(
       title: Text("Warning to user"),
-      content:
-      Text("This application must only be used passengers of vehicles. To reduce the risk of distracting the driver, this application must never be used by the driver."),
+      content: Text(
+          "This application must only be used passengers of vehicles. To reduce the risk of distracting the driver, this application must never be used by the driver."),
       actions: [dismissButton],
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return confirmDialog;
-        }
-      );
+          context: context,
+          builder: (BuildContext context) {
+            return confirmDialog;
+          });
     });
   }
 
   // Initialise this TripRecord with a new trip.
-  _TripRecorderState() {
-    this.trip = Trip();
+  _TripRecorderState(AppSettings appSettings) {
+    this.trip = Trip.withSettings(appSettings);
     this.tripRecorder = TripRecorder();
     this.gpsStreamSubscription = this
         .tripRecorder
@@ -90,13 +92,15 @@ class _TripRecorderState extends State {
               Expanded(
                 child: ListTile(
                   title: Text('Distance'),
-                  subtitle: Text(TripFormatter.formatDistance(this.trip.getDistance(), unit)),
+                  subtitle: Text(TripFormatter.formatDistance(
+                      this.trip.getDistance(), unit)),
                 ),
               ),
               Expanded(
                 child: ListTile(
                   title: Text('Time'),
-                  subtitle: Text(TripFormatter.formatElapsedTime(this.trip.getElapsedTime())),
+                  subtitle: Text(TripFormatter.formatElapsedTime(
+                      this.trip.getElapsedTime())),
                 ),
               ),
             ],
@@ -106,13 +110,15 @@ class _TripRecorderState extends State {
               Expanded(
                 child: ListTile(
                   title: Text('Average Speed'),
-                  subtitle: Text(TripFormatter.formatAverageSpeed(this.trip.getAverageSpeed(), unit)),
+                  subtitle: Text(TripFormatter.formatAverageSpeed(
+                      this.trip.getAverageSpeed(), unit)),
                 ),
               ),
               Expanded(
                 child: ListTile(
                   title: Text('Time'),
-                  subtitle: Text(TripFormatter.formatElapsedTime(this.trip.getElapsedTime())),
+                  subtitle: Text(TripFormatter.formatElapsedTime(
+                      this.trip.getElapsedTime())),
                 ),
               ),
             ],

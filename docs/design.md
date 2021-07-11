@@ -31,13 +31,10 @@
 ### ConsumptionCalculator
     - ConsumptionCalculator(Vehicle)
     - Calculate(Trip)
-    
 
 ## Offset calculation
 ### EmissionsCalculator
     - Calculate(Trip)
-    
 
 ### OffsetCalculator
     - Calculate(Trip)
-    - Calculate(params Trip[])

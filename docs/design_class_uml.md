@@ -52,26 +52,23 @@ Geolocator .. NGeolocator1
 
 class TripStore
 TripStore : save(Trip)
-TripStore : Trip[] GetSavedTrips()
+TripStore : Trip[] loadTrips()
 
 'Fuel Consumption
 class ConsumptionCalculator
 ConsumptionCalculator : consumptionCalculator(Vehicle)
 ConsumptionCalculator : double calculate(Trip)
-ConsumptionCalculator : double calculate(params Trip[])
 ConsumptionCalculator : double calculateRoadGrade(Point point1, Point point2) {
 ConsumptionCalculator : double calculateSpeed(TripPoint tripPoint1, TripPoint tripPoint2) {
 ConsumptionCalculator <-- Trip
 
 'Offset calculation
 class EmissionsCalculator
-EmissionsCalculator : double calculateCarbonEmission(Trip)
-EmissionsCalculator : double calculateCarbonEmission(params Trip[])
+EmissionsCalculator : double calculate(Trip)
 EmissionsCalculator --> ConsumptionCalculator
 
 class OffsetCalculator
-OffsetCalculator : double calculateOffsetCost(Trip)
-OffsetCalculator : double calculateOffsetCost(params Trip[])
+OffsetCalculator : double calculate(Trip)
 OffsetCalculator --> EmissionsCalculator
 
 @enduml
