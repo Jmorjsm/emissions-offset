@@ -4,6 +4,7 @@ import 'package:emissions_offset/models/point.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/trip_point.dart';
 import 'package:emissions_offset/models/vehicle.dart';
+import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 
 class ConsumptionCalculator {
@@ -50,6 +51,8 @@ class ConsumptionCalculator {
       var vspPower = (vs * (a + g * sin(grade) + rollingResistanceCoefficient) + dragCoefficient * vs3) / m;
       var vspMode = getVspMode(vspPower);
       var instantaneousConsumption = getConsumptionForMode(vspMode, this.vehicle.fuelType);
+
+      debugPrint("vspPower: "+ vspPower.toString()+", vspMode: "+ vspMode.toString() + "consumption: " + instantaneousConsumption.toString());
 
       totalConsumption += instantaneousConsumption;
    }
