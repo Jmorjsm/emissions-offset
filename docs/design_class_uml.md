@@ -20,21 +20,17 @@ Trip : addPoint(Point)
 Trip : double getDistance()
 Trip : double[] getSpeeds()
 Trip : double[] getAccelerations()
+Trip : double distance
+Trip : double fuelConsumed
+Trip : double carbonEmissions
+Trip : double offsetCost
+Trip : double averageSpeed
+Trip : DateTime startDateTime
+Trip : DateTime endDateTime
+Trip : Vehicle vehicle
+
 Trip "1" *-- "1..*" TripPoint
 Trip "1" *-- "1" Vehicle
-
-class TripSummary
-TripSummary : double distance
-TripSummary : double fuelConsumed
-TripSummary : double carbonEmissions
-TripSummary : DateTime dateTime
-TripSummary <|-- Trip
-
-class TripDetails
-TripDetails : Duration duration
-TripDetails : double offsetCost
-TripDetails : double averageSpeed
-TripDetails <|-- TripSummary
 
 'Trip recording
 class TripRecorder

@@ -12,7 +12,6 @@ import 'point.dart';
 import 'trip_point.dart';
 
 class Trip {
-  int id;
   List<TripPoint> tripPoints;
 
   DateTime startTime;
@@ -28,15 +27,12 @@ class Trip {
 
   Vehicle vehicle;
 
-  // Multipliers
-  // Emissions in kg per litre of fuel consumed, from
-  // https://www.nrcan.gc.ca/sites/www.nrcan.gc.ca/files/oee/pdf/transportation/fuel-efficient-technologies/autosmart_factsheet_6_e.pdf
-  num emissionsPerLitreConsumed = 2.3;
-  num OffsetCostPerKg = 0.50;
-
+  // Create the trip based on the provided settings
   Trip.withSettings(AppSettings settings) {
     this.tripPoints = [];
     this.vehicle = settings.vehicle;
+
+    // Set the carbon emissions per L fuel consumption value
     switch (vehicle.fuelType) {
       case FuelType.Gasoline:
         emissionsPerLitreConsumed = 2.29;
@@ -50,14 +46,15 @@ class Trip {
         (settings.offsetCostPerTonne / 1000) * settings.offsetCostMultiplier;
   }
 
+  // Create a trip with the default vehicle, used for testing
   Trip() {
     this.tripPoints = [];
     this.vehicle = new Vehicle(750, 0.3, FuelType.Gasoline);
   }
 
+  // Convert the json object to a trip
   Trip.fromJson(Map<String, dynamic> jsonMap)
-      : id = jsonMap['id'],
-        tripPoints = List<TripPoint>.from(json
+      : tripPoints = List<TripPoint>.from(json
             .decode(jsonMap['tripPoints'])
             .map((tripPointJson) => TripPoint.fromJson(tripPointJson))),
         startTime = DateTime.parse(jsonMap['startTime']),
@@ -69,8 +66,8 @@ class Trip {
         _averageSpeed = jsonMap['_averageSpeed'],
         vehicle = Vehicle.fromJson(json.decode(jsonMap['vehicle']));
 
+  // Convert the trip to a json object
   Map<String, dynamic> toJson() => {
-        'id': id,
         'tripPoints': jsonEncode(tripPoints),
         'startTime': startTime.toString(),
         'endTime': endTime.toString(),
@@ -82,10 +79,12 @@ class Trip {
         'vehicle': jsonEncode(vehicle),
       };
 
+  // start the trip
   begin() {
     this.startTime = DateTime.now();
   }
 
+  // Complete the current trip and calculate any final values.
   end() {
     this.endTime = DateTime.now();
 
@@ -99,11 +98,13 @@ class Trip {
     this.tripPoints = [];
   }
 
+  // Add a gps point to the trip
   addPoint(Point point) {
     var tripPoint = new TripPoint(point);
     this.tripPoints.add(tripPoint);
   }
 
+  // Add a gps position to the trip and add to the cached distance value.
   addPosition(Position position) {
     var point =
         new Point(position.longitude, position.latitude, position.altitude);
@@ -225,6 +226,12 @@ class Trip {
     return this._fuelConsumed;
   }
 
+  // Multipliers
+  // Emissions in kg per litre of fuel consumed, from
+  // https://www.nrcan.gc.ca/sites/www.nrcan.gc.ca/files/oee/pdf/transportation/fuel-efficient-technologies/autosmart_factsheet_6_e.pdf
+  num emissionsPerLitreConsumed = 2.3;
+  num OffsetCostPerKg = 0.50;
+
   num getCarbonEmissions() {
     if (this._carbonEmissions == null) {
       this._carbonEmissions =
@@ -232,6 +239,14 @@ class Trip {
     }
 
     return this._carbonEmissions;
+  }
+
+  num getOffsetCost() {
+    if (this._offsetCost == null) {
+      this._offsetCost = this.getCarbonEmissions() * OffsetCostPerKg;
+    }
+
+    return this._offsetCost;
   }
 
   Duration getElapsedTime() {
@@ -243,15 +258,6 @@ class Trip {
 
     return this._elapsedTime;
   }
-
-  num getOffsetCost() {
-    if (this._offsetCost == null) {
-      this._offsetCost = this.getCarbonEmissions() * OffsetCostPerKg;
-    }
-
-    return this._offsetCost;
-  }
-
   // Returns the average speed in meters per second.
   num getAverageSpeed() {
     var distanceInMeters = this.getDistance();
