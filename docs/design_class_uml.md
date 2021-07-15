@@ -20,24 +20,19 @@ Trip : addPoint(Point)
 Trip : double getDistance()
 Trip : double[] getSpeeds()
 Trip : double[] getAccelerations()
+Trip : double distance
+Trip : double fuelConsumed
+Trip : double carbonEmissions
+Trip : double offsetCost
+Trip : double averageSpeed
+Trip : DateTime startDateTime
+Trip : DateTime endDateTime
+Trip : Vehicle vehicle
+
 Trip "1" *-- "1..*" TripPoint
-'TODO add TripDetails and TripSummary inheriting from Trip
-
-class TripSummary
-TripSummary : double distance
-TripSummary : double fuelConsumed
-TripSummary : double carbonEmissions
-TripSummary : DateTime dateTime
-TripSummary <|-- Trip
-
-class TripDetails
-TripDetails : Duration duration
-TripDetails : double offsetCost
-TripDetails : double averageSpeed
-TripDetails <|-- TripSummary
+Trip "1" *-- "1" Vehicle
 
 'Trip recording
-'TODO add communication here with geolocator module
 class TripRecorder
 TripRecorder : begin(Trip)
 TripRecorder : pause(Trip)
@@ -53,28 +48,23 @@ Geolocator .. NGeolocator1
 
 class TripStore
 TripStore : save(Trip)
-TripStore : Trip[] GetSavedTrips()
+TripStore : Trip[] loadTrips()
 
 'Fuel Consumption
 class ConsumptionCalculator
 ConsumptionCalculator : consumptionCalculator(Vehicle)
 ConsumptionCalculator : double calculate(Trip)
-ConsumptionCalculator : double calculate(params Trip[])
 ConsumptionCalculator : double calculateRoadGrade(Point point1, Point point2) {
 ConsumptionCalculator : double calculateSpeed(TripPoint tripPoint1, TripPoint tripPoint2) {
 ConsumptionCalculator <-- Trip
-ConsumptionCalculator <-- Vehicle
 
 'Offset calculation
 class EmissionsCalculator
-EmissionsCalculator : double calculateCarbonEmission(Trip)
-EmissionsCalculator : double calculateCarbonEmission(params Trip[])
+EmissionsCalculator : double calculate(Trip)
 EmissionsCalculator --> ConsumptionCalculator
 
 class OffsetCalculator
-OffsetCalculator : double calculateOffsetCost(Trip)
-OffsetCalculator : double calculateOffsetCost(params Trip[])
+OffsetCalculator : double calculate(Trip)
 OffsetCalculator --> EmissionsCalculator
-
 
 @enduml

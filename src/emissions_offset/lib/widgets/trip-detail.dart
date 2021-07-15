@@ -1,4 +1,4 @@
-import 'package:emissions_offset/data/trip-formatter.dart';
+import 'package:emissions_offset/data/trip_formatter.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/unit.dart';
 import 'package:flutter/cupertino.dart';
@@ -41,7 +41,7 @@ class TripDetail extends StatelessWidget {
               Expanded(
                 child: ListTile(
                   title: Text('Distance'),
-                  subtitle: Text(TripFormatter.formatAverageSpeed(trip.getAverageSpeed(), unit)),
+                  subtitle: Text(TripFormatter.formatDistance(trip.getDistance(), unit)),
                 ),
               ),
               Expanded(
@@ -86,6 +86,12 @@ class TripDetail extends StatelessWidget {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+          child: Icon(CupertinoIcons.trash),
+          onPressed: () {
+            // Navigate back and say we did want to delete the trip.
+            Navigator.of(context).pop(true);
+          }),
     );
   }
 }

@@ -31,14 +31,10 @@
 ### ConsumptionCalculator
     - ConsumptionCalculator(Vehicle)
     - Calculate(Trip)
-    - Calculate(params Trip[])
-    - CalculateMpgForPoints(Point, Point)
 
 ## Offset calculation
 ### EmissionsCalculator
     - Calculate(Trip)
-    - Calculate(params Trip[])
 
 ### OffsetCalculator
     - Calculate(Trip)
-    - Calculate(params Trip[])

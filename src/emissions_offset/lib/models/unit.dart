@@ -3,10 +3,11 @@ enum Unit {
   Kilometers
 }
 
-Unit unitFromJson(String unitAsString){
-  for(Unit unit in Unit.values){
-    if(unit.toString() == unitAsString) { return unit;}
+Unit unitFromJson(String unitAsString) {
+  for(Unit unit in Unit.values) {
+    if(unit.toString() == unitAsString) { return unit; }
   }
 
-  return null;
+  // Default to km if not found.
+  return Unit.Kilometers;
 }

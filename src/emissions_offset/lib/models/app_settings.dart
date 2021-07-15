@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:emissions_offset/models/unit.dart';
 import 'package:emissions_offset/models/vehicle.dart';
 
+import 'fuel_type.dart';
+
 class AppSettings {
   num offsetCostPerTonne;
   num offsetCostMultiplier;
@@ -15,7 +17,7 @@ class AppSettings {
     this.offsetCostPerTonne = 10;
     this.offsetCostMultiplier = 1;
     this.unit = Unit.Kilometers;
-    this.vehicle = new Vehicle(1500, 0.3);
+    this.vehicle = new Vehicle(1500, 0.3, FuelType.Gasoline);
   }
 
   // Deserialise from json
