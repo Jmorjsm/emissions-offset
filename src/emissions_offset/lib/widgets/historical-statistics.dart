@@ -1,4 +1,5 @@
 import 'package:emissions_offset/data/trip_formatter.dart';
+import 'package:emissions_offset/models/app_settings.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/unit.dart';
 import 'package:emissions_offset/stores/trip_store.dart';
@@ -9,9 +10,9 @@ import 'package:provider/provider.dart';
 
 class HistoricalStatistics extends StatefulWidget {
   final allTrips;
-
+  var unit;
   // Initialise this HistoricalStatistics widget with the provided trips.
-  const HistoricalStatistics({Key key, this.allTrips}) : super(key: key);
+  HistoricalStatistics({Key key, this.allTrips, this.unit}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _HistoricalStatisticsState(allTrips);
@@ -51,7 +52,6 @@ class HistoricalTotals {
 class _HistoricalStatisticsState extends State<HistoricalStatistics>{
 
   final List<Trip> allTrips;
-  final Unit unit = Unit.Kilometers;
 
   HistoricalTotals totals;
 
@@ -88,7 +88,7 @@ class _HistoricalStatisticsState extends State<HistoricalStatistics>{
               Expanded(
                 child: ListTile(
                   title: Text('Distance'),
-                  subtitle: Text(TripFormatter.formatDistance(totals.Distance, unit)),
+                  subtitle: Text(TripFormatter.formatDistance(totals.Distance, widget.unit)),
                 ),
               ),
               Expanded(
@@ -110,7 +110,7 @@ class _HistoricalStatisticsState extends State<HistoricalStatistics>{
               Expanded(
                 child: ListTile(
                   title: Text('Average speed'),
-                  subtitle: Text(TripFormatter.formatAverageSpeed(totals.AverageSpeed, unit)),
+                  subtitle: Text(TripFormatter.formatAverageSpeed(totals.AverageSpeed, widget.unit)),
                 ),
               ),
             ],

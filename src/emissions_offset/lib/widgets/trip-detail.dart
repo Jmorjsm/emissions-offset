@@ -1,16 +1,16 @@
 import 'package:emissions_offset/data/trip_formatter.dart';
+import 'package:emissions_offset/models/app_settings.dart';
 import 'package:emissions_offset/models/trip.dart';
 import 'package:emissions_offset/models/unit.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-// TODO: Implement delete
 class TripDetail extends StatelessWidget {
   final Trip trip;
-  final Unit unit = Unit.Kilometers;
+  var unit;
 
   // Initialise this TripDetail with the provided trip.
-  const TripDetail({Key key, this.trip}) : super(key: key);
+  TripDetail({Key key, this.trip, this.unit}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

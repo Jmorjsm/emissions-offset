@@ -33,7 +33,8 @@ class _TripHistoryState extends State<TripHistory> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => HistoricalStatistics(
-                          allTrips: context.read<TripStore>().trips),
+                          allTrips: context.read<TripStore>().trips,
+                          unit: context.read<AppSettingsStore>().appSettings.unit),
                     ),
                   );
                   break;
@@ -75,7 +76,7 @@ class _TripHistoryState extends State<TripHistory> {
                   var shouldDelete = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TripDetail(trip: trip),
+                      builder: (context) => TripDetail(trip: trip, unit: appsettings.appSettings.unit),
                     ),
                   );
 

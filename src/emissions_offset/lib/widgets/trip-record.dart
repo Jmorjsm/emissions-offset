@@ -113,14 +113,7 @@ class _TripRecorderState extends State {
                   subtitle: Text(TripFormatter.formatAverageSpeed(
                       this.trip.getAverageSpeed(), unit)),
                 ),
-              ),
-              Expanded(
-                child: ListTile(
-                  title: Text('Time'),
-                  subtitle: Text(TripFormatter.formatElapsedTime(
-                      this.trip.getElapsedTime())),
-                ),
-              ),
+              )
             ],
           ),
         ],
