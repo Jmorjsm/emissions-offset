@@ -23,9 +23,6 @@ The initial target platform for this project is Android, however I'd like to mak
 - Run `flutter pub get` to retrieve plugin dependencies
 - Run `flutter run -d chrome` to launch the application in Chrom e
 
-## Usage
-
 ## Documentation
 - [design](docs/design.md)
-- [todo](docs/todo.md)
 - [uxpin](https://app.uxpin.com/dashboard/project/2425291)
