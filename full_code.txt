@@ -1,0 +1,1938 @@
+==> ./lib/data/consumption_calculator.dart <==
+import 'dart:math';
+import 'package:emissions_offset/models/fuel_type.dart';
+import 'package:emissions_offset/models/point.dart';
+import 'package:emissions_offset/models/trip.dart';
+import 'package:emissions_offset/models/trip_point.dart';
+import 'package:emissions_offset/models/vehicle.dart';
+import 'package:flutter/widgets.dart';
+import 'package:geolocator/geolocator.dart';
+
+class ConsumptionCalculator {
+  Vehicle vehicle;
+
+  ConsumptionCalculator(Vehicle vehicle) {
+    this.vehicle = vehicle;
+  }
+
+  double calculate(Trip trip) {
+    double totalConsumption = 0;
+    var accelerations = trip.getAccelerations();
+
+    for (var pointIndex = 1;
+        pointIndex < trip.tripPoints.length - 1;
+        pointIndex++) {
+      // Get the first point
+      var p1 = trip.tripPoints[pointIndex - 1];
+
+      // Get the second point
+      var p2 = trip.tripPoints[pointIndex];
+
+      // get the input parameters for the numerator
+      var m = this.vehicle.mass;
+
+      // acceleration in m/s/s
+      var a = accelerations[pointIndex - 1];
+
+      // acceleration due to gravity (m/s/s)
+      var g = 9.81;
+
+      // road gradient (radians)
+      var grade = this.calculateRoadGrade(p1.point, p2.point);
+
+      // road gradient
+      var dragCoefficient = this.vehicle.dragCoefficient;
+      var rollingResistanceCoefficient = 0.02;
+
+      // speed in m/s
+      var vs = this.calculateSpeed(p1, p2);
+      var vs3 = vs * vs * vs;
+
+      // VSP formula
+      var vspPower = (vs * (a + g * sin(grade) + rollingResistanceCoefficient) + dragCoefficient * vs3) / m;
+      var vspMode = getVspMode(vspPower);
+      var instantaneousConsumption = getConsumptionForMode(vspMode, this.vehicle.fuelType);
+
+      debugPrint("vspPower: "+ vspPower.toString()+", vspMode: "+ vspMode.toString() + "consumption: " + instantaneousConsumption.toString());
+
+      totalConsumption += instantaneousConsumption;
+   }
+
+    return totalConsumption;
+  }
+
+  // array containing the upper bounds of VSP power value buckets
+  static const List<int> VspModeBoundaries = [-2, 0, 1, 4, 7, 10, 13, 16, 19, 23, 28, 33, 39];
+  int getVspMode(num vspPower){
+    int vspMode = 1;
+    // Loop through the lower bounds for each vsp bucket, incrementing the mode value until the power is less than the upper bound
+    for (var vspIndex = 0; vspIndex < VspModeBoundaries.length; ++vspIndex){
+      if (vspPower < VspModeBoundaries[vspIndex]){
+        break;
+      }
+
+      ++vspMode;
+    }
+
+    return vspMode;
+  }
+
+  static const Map<FuelType, List<num>> VspConsumptions = {
+    FuelType.Gasoline: [0.01244, 0.01866, 0.020526, 0.0622, 0.08397, 0.11507, 0.14306, 0.16794, 0.19904, 0.22703, 0.27368, 0.28101, 0.31394, 0.34566],
+    FuelType.Diesel: [0.01116, 0.01674, 0.018414, 0.0558, 0.07533, 0.10323, 0.12834, 0.15066, 0.17856, 0.20367, 0.24552, 0.25209, 0.28163, 0.31009],
+  };
+  num getConsumptionForMode(int vspMode, FuelType fuelType) {
+    // subtract 1 to get the index
+    var modeIndex = vspMode - 1;
+    return VspConsumptions[fuelType][modeIndex];
+  }
+
+  double calculateMultiple(List<Trip> trips) {
+    double total = 0;
+    for (var tripIndex = 0; tripIndex < trips.length; ++tripIndex) {
+      total += this.calculate(trips[tripIndex]);
+    }
+
+    return total / (trips.length);
+  }
+
+  double calculateRoadGrade(Point point1, Point point2) {
+    var distance = Geolocator.distanceBetween(
+        point2.latitude, point2.longitude, point1.latitude, point1.longitude);
+    if(distance == 0){
+      return 0;
+    }
+
+    var deltaAltitude = point2.altitude - point1.altitude;
+
+    return atan(deltaAltitude / distance);
+  }
+
+  // Returns the speed in meters per second
+  double calculateSpeed(TripPoint tripPoint1, TripPoint tripPoint2) {
+    var point1 = tripPoint1.point;
+    var point2 = tripPoint2.point;
+
+    var distance = Geolocator.distanceBetween(
+        point2.latitude, point2.longitude, point1.latitude, point1.longitude);
+    var deltaTime = tripPoint2.dateTime.difference(tripPoint1.dateTime);
+
+    return distance / (deltaTime.inMicroseconds/Duration.microsecondsPerSecond);
+  }
+}
+
+==> ./lib/data/trip_formatter.dart <==
+import 'package:emissions_offset/models/unit.dart';
+import 'package:intl/intl.dart';
+
+class TripFormatter {
+  static String formatDistance(num distance, Unit unit) {
+    var distanceDenominator;
+    switch(unit){
+      case Unit.Miles:
+        distanceDenominator = 1609.34;
+        break;
+      case Unit.Kilometers:
+        distanceDenominator = 1000;
+        break;
+    }
+
+    return '${NumberFormat("##00.00").format(distance/distanceDenominator)}${formatDistanceUnit(unit)}';
+  }
+
+  static String formatDistanceUnit(Unit unit){
+    switch (unit){
+      case Unit.Miles:
+        return "miles";
+        break;
+      case Unit.Kilometers:
+        return "km";
+        break;
+    }
+  }
+
+  static String formatSpeedUnit(Unit unit){
+    switch (unit){
+      case Unit.Miles:
+        return "mph";
+        break;
+      case Unit.Kilometers:
+        return "kph";
+        break;
+    }
+  }
+
+  static String formatElapsedTime(Duration elapsedTime) {
+    return '${elapsedTime.inHours.toString().padLeft(2, "0")}:${elapsedTime.inMinutes.remainder(60).toString().padLeft(2, "0")}:${elapsedTime.inSeconds.remainder(60).toString().padLeft(2, "0")}';
+  }
+
+  static String formatAverageSpeed(num speedInMetersPerSecond, Unit unit) {
+    const num secondsPerHour = 60*60;
+    var unitMultiplier;
+    switch(unit){
+      case Unit.Miles:
+        unitMultiplier = secondsPerHour / 1609.34;
+        break;
+      case Unit.Kilometers:
+        unitMultiplier = secondsPerHour / 1000;
+        break;
+    }
+
+    return '${NumberFormat("##00.00").format(speedInMetersPerSecond*unitMultiplier)}${TripFormatter.formatSpeedUnit(unit)}';
+  }
+
+  static String FormatFuelConsumed(num fuelConsumed) {
+    return '${NumberFormat("##00.00").format(fuelConsumed)}L';
+  }
+
+  static String FormatCarbonEmissions(num carbonEmitted) {
+    return '${NumberFormat("##00.00").format(carbonEmitted)}kg';
+  }
+
+  static String FormatOffsetCost(num offsetCost) {
+    return '${NumberFormat("£##00.00").format(offsetCost)}';
+  }
+}
+==> ./lib/data/trip_recorder.dart <==
+import 'dart:async';
+
+import 'package:emissions_offset/models/trip.dart';
+import 'package:geolocator/geolocator.dart';
+
+class TripRecorder {
+  StreamSubscription<Position> registerGpsHandler(
+      Trip trip, void Function(Position position) updateTripStateCallback) {
+    return Geolocator.getPositionStream(desiredAccuracy: LocationAccuracy.best)
+        .listen(updateTripStateCallback);
+  }
+
+  Future<Position> determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permission denied.');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions permanently denied. Please resolve this in your device settings.');
+    }
+
+    return await Geolocator.getCurrentPosition();
+  }
+}
+
+==> ./lib/generated_plugin_registrant.dart <==
+//
+// Generated file. Do not edit.
+//
+
+// ignore_for_file: lines_longer_than_80_chars
+
+import 'package:geolocator_web/geolocator_web.dart';
+
+import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+
+// ignore: public_member_api_docs
+void registerPlugins(Registrar registrar) {
+  GeolocatorPlugin.registerWith(registrar);
+  registrar.registerMessageHandler();
+}
+
+==> ./lib/main.dart <==
+import 'package:emissions_offset/stores/app_settings_store.dart';
+import 'package:emissions_offset/stores/trip_store.dart';
+import 'package:emissions_offset/widgets/trip-history.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+void main() {
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => TripStore(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => AppSettingsStore(),
+        ),
+      ],
+      child: EmissionsOffsetApp(),
+    ),
+  );
+}
+
+class EmissionsOffsetApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Emissions Offset',
+      theme: ThemeData(
+
+        primarySwatch: Colors.deepPurple,
+        accentColor: Colors.tealAccent,
+      ),
+      home: TripHistory(title: 'Trip History'),
+    );
+  }
+}
+
+==> ./lib/models/app_settings.dart <==
+import 'dart:convert';
+
+import 'package:emissions_offset/models/unit.dart';
+import 'package:emissions_offset/models/vehicle.dart';
+
+import 'fuel_type.dart';
+
+class AppSettings {
+  num offsetCostPerTonne;
+  num offsetCostMultiplier;
+  Unit unit;
+  Vehicle vehicle;
+
+  // Constructor with default settings.
+  AppSettings(){
+    // Average offset cost per tonne = £10
+    this.offsetCostPerTonne = 10;
+    this.offsetCostMultiplier = 1;
+    this.unit = Unit.Kilometers;
+    this.vehicle = new Vehicle(1500, 0.3, FuelType.Gasoline);
+  }
+
+  // Deserialise from json
+  AppSettings.fromJson(Map<String, dynamic> jsonMap)
+      : offsetCostPerTonne = jsonMap['offsetCostPerTonne'],
+        offsetCostMultiplier = jsonMap['offsetCostMultiplier'],
+        unit = unitFromJson(jsonMap['unit']),
+        vehicle = Vehicle.fromJson(json.decode(jsonMap['vehicle']));
+
+  // Serialise to json
+  Map<String, dynamic> toJson() => {
+    'offsetCostPerTonne': offsetCostPerTonne,
+    'offsetCostMultiplier': offsetCostMultiplier,
+    'unit': unit.toString(),
+    'vehicle': jsonEncode(vehicle),
+  };
+}
+==> ./lib/models/fuel_type.dart <==
+enum FuelType {
+  Gasoline,
+  Diesel,
+}
+
+FuelType fuelTypeFromJson(String fuelTypeAsString) {
+  for(FuelType fuelType in FuelType.values) {
+    if(fuelType.toString() == fuelTypeAsString) { return fuelType; }
+  }
+
+  // Default to gasoline if not found.
+  return FuelType.Gasoline;
+}
+
+==> ./lib/models/point.dart <==
+class Point {
+  double longitude;
+  double latitude;
+  double altitude;
+
+  Point(this.longitude, this.latitude, this.altitude);
+
+  Point.fromJson(Map<String, dynamic> json)
+    : longitude = json['longitude'],
+      latitude = json['latitude'],
+      altitude = json['altitude'];
+
+  Map<String, dynamic> toJson () => {
+    'longitude' : longitude,
+    'latitude' : latitude,
+    'altitude' : altitude,
+  };
+}
+==> ./lib/models/trip.dart <==
+import 'dart:convert';
+
+import 'package:emissions_offset/data/consumption_calculator.dart';
+import 'package:emissions_offset/models/app_settings.dart';
+import 'package:emissions_offset/models/unit.dart';
+import 'package:emissions_offset/models/vehicle.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
+
+import 'fuel_type.dart';
+import 'point.dart';
+import 'trip_point.dart';
+
+class Trip {
+  List<TripPoint> tripPoints;
+
+  DateTime startTime;
+  DateTime endTime;
+
+  num _distanceCache;
+
+  num _fuelConsumed;
+  num _carbonEmissions;
+  Duration _elapsedTime;
+  num _offsetCost;
+  num _averageSpeed;
+
+  Vehicle vehicle;
+
+  // Create the trip based on the provided settings
+  Trip.withSettings(AppSettings settings) {
+    this.tripPoints = [];
+    this.vehicle = settings.vehicle;
+
+    // Set the carbon emissions per L fuel consumption value
+    switch (vehicle.fuelType) {
+      case FuelType.Gasoline:
+        emissionsPerLitreConsumed = 2.29;
+        break;
+      case FuelType.Diesel:
+        emissionsPerLitreConsumed = 2.66;
+        break;
+    }
+
+    this.OffsetCostPerKg =
+        (settings.offsetCostPerTonne / 1000) * settings.offsetCostMultiplier;
+  }
+
+  // Create a trip with the default vehicle, used for testing
+  Trip() {
+    this.tripPoints = [];
+    this.vehicle = new Vehicle(750, 0.3, FuelType.Gasoline);
+  }
+
+  // Convert the json object to a trip
+  Trip.fromJson(Map<String, dynamic> jsonMap)
+      : tripPoints = List<TripPoint>.from(json
+            .decode(jsonMap['tripPoints'])
+            .map((tripPointJson) => TripPoint.fromJson(tripPointJson))),
+        startTime = DateTime.parse(jsonMap['startTime']),
+        endTime = DateTime.parse(jsonMap['endTime']),
+        _distanceCache = jsonMap['_distanceCache'],
+        _fuelConsumed = jsonMap['_fuelConsumed'],
+        _carbonEmissions = jsonMap['_carbonEmissions'],
+        _offsetCost = jsonMap['_offsetCost'],
+        _averageSpeed = jsonMap['_averageSpeed'],
+        vehicle = Vehicle.fromJson(json.decode(jsonMap['vehicle']));
+
+  // Convert the trip to a json object
+  Map<String, dynamic> toJson() => {
+        'tripPoints': jsonEncode(tripPoints),
+        'startTime': startTime.toString(),
+        'endTime': endTime.toString(),
+        '_distanceCache': _distanceCache,
+        '_fuelConsumed': _fuelConsumed,
+        '_carbonEmissions': _carbonEmissions,
+        '_offsetCost': _offsetCost,
+        '_averageSpeed': _averageSpeed,
+        'vehicle': jsonEncode(vehicle),
+      };
+
+  // start the trip
+  begin() {
+    this.startTime = DateTime.now();
+  }
+
+  // Complete the current trip and calculate any final values.
+  end() {
+    this.endTime = DateTime.now();
+
+    // Call all the getters to ensure this is set when serialising/saving.
+    getAverageSpeed();
+    getFuelConsumed();
+    getCarbonEmissions();
+    getOffsetCost();
+
+    // Clear the trip points so this doesn't get stored.
+    this.tripPoints = [];
+  }
+
+  // Add a gps point to the trip
+  addPoint(Point point) {
+    var tripPoint = new TripPoint(point);
+    this.tripPoints.add(tripPoint);
+  }
+
+  // Add a gps position to the trip and add to the cached distance value.
+  addPosition(Position position) {
+    var point =
+        new Point(position.longitude, position.latitude, position.altitude);
+    this.addPoint(point);
+
+    if (tripPoints != null && tripPoints.length > 2) {
+      if (this._distanceCache == null) {
+        _distanceCache = 0;
+      }
+
+      var p1 = this.tripPoints[this.tripPoints.length - 2].point;
+      var p2 = this.tripPoints[this.tripPoints.length - 1].point;
+      num latestDistance = Geolocator.distanceBetween(
+          p2.latitude, p2.longitude, p1.latitude, p1.longitude);
+
+      this._distanceCache += latestDistance;
+    }
+  }
+
+  // Gets the distance in meters
+  num getDistance() {
+    if (this._distanceCache == null) {
+      return 0;
+    }
+
+    return this._distanceCache;
+  }
+
+  // Gets the total distance travelled in the trip in meters.
+  num calculateDistance() {
+    double totalDistance = 0;
+    for (var pointIndex = 1;
+        pointIndex < this.tripPoints.length;
+        pointIndex++) {
+      var p1 = this.tripPoints[pointIndex - 1].point;
+      var p2 = this.tripPoints[pointIndex].point;
+      totalDistance += Geolocator.distanceBetween(
+          p2.latitude, p2.longitude, p1.latitude, p1.longitude);
+    }
+
+    return totalDistance;
+  }
+
+  List<double> getAccelerations() {
+    List<double> accelerations = [];
+    for (var pointIndex = 0;
+        pointIndex < this.tripPoints.length - 1;
+        pointIndex++) {
+      var point2 = this.tripPoints[pointIndex];
+      double speed1;
+      double speed2;
+
+      var time1;
+      var time2;
+
+      if (pointIndex <= 0) {
+        speed1 = 0;
+        time1 = this.startTime;
+      } else {
+        var point1 = this.tripPoints[pointIndex - 1];
+        time1 = point1.dateTime;
+        var distance1 = Geolocator.distanceBetween(
+            point1.point.latitude,
+            point1.point.longitude,
+            point2.point.latitude,
+            point2.point.longitude);
+        var deltaTime1 = point2.dateTime.difference(point1.dateTime);
+        speed1 = distance1 /
+            (deltaTime1.inMicroseconds / Duration.microsecondsPerSecond);
+      }
+
+      if (pointIndex == this.tripPoints.length - 1) {
+        speed2 = 0;
+        time2 = this.endTime;
+      } else {
+        var point3 = this.tripPoints[pointIndex + 1];
+        time2 = point3.dateTime;
+        var distance2 = Geolocator.distanceBetween(
+            point2.point.latitude,
+            point2.point.longitude,
+            point3.point.latitude,
+            point3.point.longitude);
+        var deltaTime2 = point3.dateTime.difference(point2.dateTime);
+        speed2 = distance2 /
+            (deltaTime2.inMicroseconds / Duration.microsecondsPerSecond);
+      }
+
+      var deltaSpeed = speed2 - speed1;
+      var deltaTime = time2.difference(time1);
+
+      accelerations.add(deltaSpeed /
+          (deltaTime.inMicroseconds / Duration.microsecondsPerSecond));
+    }
+
+    return accelerations;
+  }
+
+  DateTime getStart() {
+    if (this.tripPoints != null && this.tripPoints.isNotEmpty) {
+      this.startTime = this.tripPoints.first.dateTime;
+    }
+
+    return this.startTime;
+  }
+
+  DateTime getEnd() {
+    if (this.tripPoints != null && this.tripPoints.isNotEmpty) {
+      this.endTime = this.tripPoints.last.dateTime;
+    }
+
+    return this.endTime;
+  }
+
+  num getFuelConsumed() {
+    if (this._fuelConsumed == null) {
+      this._fuelConsumed = ConsumptionCalculator(this.vehicle).calculate(this);
+    }
+
+    return this._fuelConsumed;
+  }
+
+  // Multipliers
+  // Emissions in kg per litre of fuel consumed, from
+  // https://www.nrcan.gc.ca/sites/www.nrcan.gc.ca/files/oee/pdf/transportation/fuel-efficient-technologies/autosmart_factsheet_6_e.pdf
+  num emissionsPerLitreConsumed = 2.3;
+  num OffsetCostPerKg = 0.50;
+
+  num getCarbonEmissions() {
+    if (this._carbonEmissions == null) {
+      this._carbonEmissions =
+          this.getFuelConsumed() * emissionsPerLitreConsumed;
+    }
+
+    return this._carbonEmissions;
+  }
+
+  num getOffsetCost() {
+    if (this._offsetCost == null) {
+      this._offsetCost = this.getCarbonEmissions() * OffsetCostPerKg;
+    }
+
+    return this._offsetCost;
+  }
+
+  Duration getElapsedTime() {
+    if (this.getEnd() == null || this.getStart() == null) {
+      this._elapsedTime = Duration.zero;
+    } else {
+      this._elapsedTime = this.getEnd().difference(this.getStart());
+    }
+
+    return this._elapsedTime;
+  }
+  // Returns the average speed in meters per second.
+  num getAverageSpeed() {
+    var distanceInMeters = this.getDistance();
+    var time = getElapsedTime().inSeconds;
+
+    // Avoid division by 0
+    if (distanceInMeters == 0 || time == 0) {
+      return 0;
+    }
+
+    this._averageSpeed = distanceInMeters / time;
+
+    return this._averageSpeed;
+  }
+}
+
+==> ./lib/models/trip_point.dart <==
+import 'point.dart';
+
+class TripPoint {
+  Point point;
+  DateTime dateTime;
+
+  TripPoint(Point point) {
+    this.point = point;
+    this.dateTime = DateTime.now();
+  }
+
+  TripPoint.fromJson(Map<String, dynamic> json)
+      : point = Point.fromJson(json['point']),
+        dateTime = DateTime.parse(json['dateTime']);
+
+  Map<String, dynamic> toJson() => {
+        'point': point,
+        'dateTime': dateTime.toString(),
+      };
+
+  setDateTime(DateTime dateTime) {
+    this.dateTime = dateTime;
+  }
+}
+
+==> ./lib/models/unit.dart <==
+enum Unit {
+  Miles,
+  Kilometers
+}
+
+Unit unitFromJson(String unitAsString) {
+  for(Unit unit in Unit.values) {
+    if(unit.toString() == unitAsString) { return unit; }
+  }
+
+  // Default to km if not found.
+  return Unit.Kilometers;
+}
+
+==> ./lib/models/vehicle.dart <==
+import 'package:emissions_offset/models/fuel_type.dart';
+
+class Vehicle {
+  double mass;
+  double dragCoefficient;
+  FuelType fuelType;
+
+  Vehicle (double mass, double dragCoefficient, FuelType fuelType){
+    this.mass = mass;
+    this.dragCoefficient = dragCoefficient;
+    this.fuelType = fuelType;
+  }
+
+  Vehicle.fromJson(Map<String, dynamic> json)
+    : mass = json['mass'],
+      dragCoefficient = json['dragCoefficient'],
+      fuelType = fuelTypeFromJson(json['fuelType']);
+
+  Map<String, dynamic> toJson () => {
+    'mass' : mass,
+    'dragCoefficient' : dragCoefficient,
+    'fuelType' : fuelType.toString(),
+  };
+
+}
+
+==> ./lib/stores/app_settings_store.dart <==
+import 'dart:convert';
+
+import 'package:emissions_offset/models/app_settings.dart';
+import 'package:flutter/material.dart';
+import 'package:localstorage/localstorage.dart';
+
+class AppSettingsStore with ChangeNotifier {
+  AppSettings appSettings;
+
+  static const String _appSettingsFileName = 'emissions-offset-app-settings';
+  static const String _appSettingsItemName = "app-settings";
+
+  final LocalStorage storage = new LocalStorage(_appSettingsFileName);
+
+  AppSettingsStore() {
+    storage.ready.then((_) => loadAppSettings());
+  }
+
+  // Save the app settings to local storage
+  saveSettings(AppSettings appSettings){
+    this.appSettings = appSettings;
+    this.storage.setItem(_appSettingsItemName, this.appSettings.toJson());
+    notifyListeners();
+  }
+
+  // Load the app settings from local storage
+  loadAppSettings() {
+    var appSettingsJson = storage.getItem(_appSettingsItemName);
+    if (appSettingsJson != null) {
+      debugPrint("settings:");
+      debugPrint(appSettingsJson.toString());
+      debugPrint("loaded saved trips:");
+
+      this.appSettings = AppSettings.fromJson(appSettingsJson);
+
+      if (this.appSettings != null) {
+        debugPrint(this.appSettings.toString());
+      }
+    } else {
+      debugPrint("no saved appSettings file...");
+      this.appSettings = new AppSettings();
+    }
+    // Tell the ui that we're done loading.
+    notifyListeners();
+  }
+}
+==> ./lib/stores/trip_store.dart <==
+import 'dart:convert';
+
+import 'package:emissions_offset/models/point.dart';
+import 'package:emissions_offset/models/trip.dart';
+import 'package:emissions_offset/models/trip_point.dart';
+import 'package:flutter/material.dart';
+import 'package:localstorage/localstorage.dart';
+
+class TripStore with ChangeNotifier {
+  List<Trip> trips = [];
+
+  static const String _tripStoreFileName = 'emissions-offset-trips';
+  static const String _tripStoreItemName = "trips";
+
+  final LocalStorage storage = new LocalStorage(_tripStoreFileName);
+
+  TripStore() {
+    storage.ready.then((_) => loadTrips());
+  }
+
+  void addTrip(Trip trip) {
+    this.trips.add(trip);
+    this.storage.setItem(_tripStoreItemName, jsonEncode(this.trips));
+    notifyListeners();
+  }
+
+  void deleteTrip(int index) {
+    this.trips.removeAt(index);
+    this.storage.setItem(_tripStoreItemName, jsonEncode(this.trips));
+    notifyListeners();
+  }
+
+  loadTrips() {
+    var tripListJson = storage.getItem(_tripStoreItemName);
+    if (tripListJson != null) {
+      debugPrint("savedTrips:");
+      debugPrint(tripListJson);
+      debugPrint("loaded saved trips:");
+
+      var tripList = json.decode(tripListJson);
+
+      this.trips =
+          List<Trip>.from(tripList.map((tripJson) => Trip.fromJson(tripJson)));
+
+      if (this.trips != null) {
+        debugPrint(this.trips.length.toString());
+      }
+    } else {
+      debugPrint("no saved trip file...");
+      this.trips = [];
+    }
+    // Tell the ui that we're done loading.
+    notifyListeners();
+  }
+
+  clear() {
+    this.storage.deleteItem(_tripStoreItemName);
+    this.trips = [];
+    notifyListeners();
+  }
+}
+
+==> ./lib/widgets/historical-statistics.dart <==
+import 'package:emissions_offset/data/trip_formatter.dart';
+import 'package:emissions_offset/models/app_settings.dart';
+import 'package:emissions_offset/models/trip.dart';
+import 'package:emissions_offset/models/unit.dart';
+import 'package:emissions_offset/stores/trip_store.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:provider/provider.dart';
+
+class HistoricalStatistics extends StatefulWidget {
+  final allTrips;
+  var unit;
+  // Initialise this HistoricalStatistics widget with the provided trips.
+  HistoricalStatistics({Key key, this.allTrips, this.unit}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _HistoricalStatisticsState(allTrips);
+}
+
+class HistoricalTotals {
+  final FuelConsumed;
+  final CarbonEmissions;
+  final Distance;
+  final AverageSpeed;
+  final Duration ElapsedTime;
+  final OffsetCost;
+
+  HistoricalTotals(this.FuelConsumed, this.CarbonEmissions, this.Distance, this.AverageSpeed, this.ElapsedTime, this.OffsetCost);
+
+  static HistoricalTotals fromTrips(List<Trip> trips){
+    var fuelConsumed = trips.fold(0, (a, b) => a + b.getFuelConsumed());
+    var carbonEmissions = trips.fold(0, (a, b) => a + b.getCarbonEmissions());
+    num distance = trips.fold(0, (a, b) => a + b.getDistance());
+
+    num averageSpeed;
+    if(trips.length > 0) {
+      num totalAvgSpeed = trips.fold(0, (a, b) => a + b.getAverageSpeed());
+       averageSpeed =  totalAvgSpeed / trips.length;
+    }
+    else {
+      averageSpeed = 0;
+    }
+
+    Duration elapsedTime = trips.fold(Duration.zero, (a, b) => a + b.getElapsedTime());
+    var offsetCost = trips.fold(0, (a, b) => a + b.getOffsetCost());
+
+    return HistoricalTotals(fuelConsumed, carbonEmissions, distance, averageSpeed, elapsedTime, offsetCost);
+  }
+}
+
+class _HistoricalStatisticsState extends State<HistoricalStatistics>{
+
+  final List<Trip> allTrips;
+
+  HistoricalTotals totals;
+
+  _HistoricalStatisticsState(this.allTrips){
+    totals = HistoricalTotals.fromTrips(allTrips);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Historical statistics'),
+      ),
+      body: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text('Fuel Consumed'),
+                  subtitle: Text(TripFormatter.FormatFuelConsumed(totals.FuelConsumed)),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: Text('Carbon emitted'),
+                  subtitle: Text(TripFormatter.FormatCarbonEmissions(totals.CarbonEmissions)),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text('Distance'),
+                  subtitle: Text(TripFormatter.formatDistance(totals.Distance, widget.unit)),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: Text('Time'),
+                  subtitle: Text(TripFormatter.formatElapsedTime(totals.ElapsedTime)),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text('Offset cost'),
+                  subtitle: Text(TripFormatter.FormatOffsetCost(totals.OffsetCost)),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: Text('Average speed'),
+                  subtitle: Text(TripFormatter.formatAverageSpeed(totals.AverageSpeed, widget.unit)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      // using flutter_speed_dial package as described here: https://www.youtube.com/watch?v=1FmATI4rOBc
+      floatingActionButton: SpeedDial(
+        tooltip: 'Filter',
+        icon: Icons.filter_alt,
+        children: [
+          SpeedDialChild(
+            child: Icon(Icons.view_week),
+            label: 'Last week',
+            onTap: () {
+              filterAndCalculateTotals(context, 'Last week');
+            },
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.view_module),
+            label: 'Last month',
+            onTap: () {
+              filterAndCalculateTotals(context, 'Last month');
+            },
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.calendar_today_sharp),
+            label: 'Last year',
+            onTap: () {
+              filterAndCalculateTotals(context, 'Last year');
+            },
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.all_inclusive),
+            label: 'All time',
+            onTap: () {
+              filterAndCalculateTotals(context, 'All time');
+            },
+          ),
+        ],
+      )
+    );
+  }
+
+  void filterAndCalculateTotals(BuildContext context, String value) {
+    List<Trip> tripsInRange;
+    switch(value){
+      case 'Last week':
+        tripsInRange = this.allTrips.where((element) => element.endTime.isAfter(DateTime.now().subtract(Duration(days: 7)))).toList();
+        break;
+      case 'Last month':
+        tripsInRange = this.allTrips.where((element) => element.endTime.isAfter(DateTime.now().subtract(Duration(days: 30)))).toList();
+        break;
+      case 'Last year':
+        tripsInRange = this.allTrips.where((element) => element.endTime.isAfter(DateTime.now().subtract(Duration(days: 365)))).toList();
+        break;
+      case 'All time':
+        tripsInRange = this.allTrips;
+        break;
+    }
+
+    setState(() {
+      totals = totals = HistoricalTotals.fromTrips(tripsInRange);
+    });
+  }
+}
+
+==> ./lib/widgets/settings.dart <==
+import 'package:emissions_offset/models/app_settings.dart';
+import 'package:emissions_offset/models/fuel_type.dart';
+import 'package:emissions_offset/models/unit.dart';
+import 'package:emissions_offset/stores/app_settings_store.dart';
+import 'package:emissions_offset/stores/trip_store.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
+
+class Settings extends StatefulWidget {
+  Settings({Key key, this.title}) : super(key: key);
+  final String title;
+
+  @override
+  _SettingsState createState() => _SettingsState();
+}
+
+class _SettingsState extends State<Settings> {
+  var appSettings;
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AppSettingsStore>(
+      builder: (context, appSettingsStore, child) {
+        appSettings = appSettingsStore.appSettings;
+        if (appSettings == null) {
+          appSettings = new AppSettings();
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Settings'),
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () => this.saveSettings(context,appSettingsStore),
+            ),
+          ),
+          body: Padding(
+            padding: EdgeInsets.all(12.0),
+            child:
+              Column(
+                children: [
+                  // Vehicle section
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Text(
+                            'Vehicle settings',
+                            style: Theme.of(context).textTheme.headline6,
+                          )
+                      ),
+                    ],
+                  ),
+                  // Drag Coefficient
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Drag Coefficient:'),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: appSettingsStore.appSettings.vehicle.dragCoefficient.toString(),
+                          onChanged: (text) {
+                            var value = num.tryParse(text);
+                            appSettingsStore.appSettings.vehicle.dragCoefficient = value;
+                          },
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Mass
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Mass (kg):'),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: appSettingsStore.appSettings.vehicle.mass.toString(),
+                          onChanged: (text) {
+                            var value = num.tryParse(text);
+                            appSettingsStore.appSettings.vehicle.mass = value;
+                          },
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Fuel type
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Fuel type:'),
+                      ),
+                      Expanded(
+                        child: _FuelTypeSelect(
+                          appSettings: appSettings,
+                        ),
+                      ),
+                    ],
+                  ),
+
+
+                  // Offsetting
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Text(
+                            'Offset settings',
+                            style: Theme.of(context).textTheme.headline6,
+                          )
+                      ),
+                    ],
+                  ),
+                  // Offset cost
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Offset cost (£):'),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: appSettingsStore.appSettings.offsetCostPerTonne.toString(),
+                          onChanged: (text) {
+                            var value = num.tryParse(text);
+                            appSettingsStore.appSettings.offsetCostPerTonne = value;
+                          },
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Offset multiplier
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Offset multiplier:'),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: appSettingsStore.appSettings.offsetCostMultiplier.toString(),
+                          onChanged: (text) {
+                            var value = num.tryParse(text);
+                            appSettingsStore.appSettings.offsetCostMultiplier = value;
+                          },
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Other
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Text(
+                            'Other',
+                            style: Theme.of(context).textTheme.headline6,
+                          )
+                      ),
+                    ],
+                  ),
+                  // Distance unit
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Distance unit:'),
+                      ),
+                      Expanded(
+                        child: _UnitSelect(
+                          appSettings: appSettings,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(child:
+                        TextButton(
+                          onPressed: () {
+                            showDeleteConfirmationDialog(context);
+                          },
+                          child: Text("Delete all recorded trips"))
+                      ),
+                    ],
+                  ),
+                ]
+              )
+            )
+          );
+        },
+      );
+  }
+
+  showDeleteConfirmationDialog(BuildContext context) {
+    Widget cancelButton = TextButton(
+      child: Text("Cancel"),
+      onPressed: () {
+        // Close the dialog
+        Navigator.of(context).pop();
+      },
+    );
+
+    Widget confirmButton = TextButton(
+      child: Text("Delete all trips."),
+      onPressed: () {
+        // Delete all trips
+        var tripStore = context.read<TripStore>();
+        setState(() {
+          tripStore.clear();
+        });
+        // Close the dialog
+        Navigator.of(context).pop();
+      },
+    );
+
+    AlertDialog confirmDialog = AlertDialog(
+      title: Text("Confirm Delete"),
+      content:
+          Text("Are you sure you would like to delete all recorded trips?"),
+      actions: [cancelButton, confirmButton],
+    );
+
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return confirmDialog;
+        });
+  }
+
+  saveSettings(BuildContext context, AppSettingsStore appSettingsStore) {
+    appSettingsStore.saveSettings(appSettings);
+    Navigator.pop(context);
+  }
+}
+
+class _UnitSelect extends StatefulWidget{
+
+  const _UnitSelect({ this.appSettings });
+
+  final AppSettings appSettings;
+
+  @override
+  State<StatefulWidget> createState() => __UnitSelectState();
+}
+
+class __UnitSelectState extends State<_UnitSelect> {
+  Unit selectedUnit;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedUnit = widget.appSettings.unit;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final unitNames = {
+      Unit.Kilometers: 'Kilometers',
+      Unit.Miles: 'Miles',
+    };
+
+    return DropdownButton<Unit>(
+      value: selectedUnit,
+      icon: const Icon(Icons.arrow_downward),
+      iconSize: 24,
+      elevation: 16,
+      onChanged: (unit){
+        setState(() {
+          selectedUnit = unit;
+          widget.appSettings.unit = unit;
+        });
+      },
+      items: <DropdownMenuItem<Unit>>[
+        DropdownMenuItem<Unit>(
+          value: Unit.Kilometers,
+          child: Text(unitNames[Unit.Kilometers]),
+        ),
+        DropdownMenuItem<Unit>(
+          value: Unit.Miles,
+          child: Text(unitNames[Unit.Miles]),
+        ),
+      ],
+    );
+  }
+}
+
+class _FuelTypeSelect extends StatefulWidget{
+
+  const _FuelTypeSelect({ this.appSettings });
+
+  final AppSettings appSettings;
+
+  @override
+  State<StatefulWidget> createState() => __FuelTypeSelectState();
+}
+
+class __FuelTypeSelectState extends State<_FuelTypeSelect> {
+  FuelType selectedFuelType;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedFuelType = widget.appSettings.vehicle.fuelType;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fuelTypeNames = {
+      FuelType.Gasoline: 'Gasoline',
+      FuelType.Diesel: 'Diesel',
+    };
+
+    return DropdownButton<FuelType>(
+      value: selectedFuelType,
+      icon: const Icon(Icons.arrow_downward),
+      iconSize: 24,
+      elevation: 16,
+      onChanged: (fuelType){
+        setState(() {
+          selectedFuelType = fuelType;
+          widget.appSettings.vehicle.fuelType = fuelType;
+        });
+      },
+      items: <DropdownMenuItem<FuelType>>[
+        DropdownMenuItem<FuelType>(
+          value: FuelType.Gasoline,
+          child: Text(fuelTypeNames[FuelType.Gasoline]),
+        ),
+        DropdownMenuItem<FuelType>(
+          value: FuelType.Diesel,
+          child: Text(fuelTypeNames[FuelType.Diesel]),
+        ),
+      ],
+    );
+  }
+}
+==> ./lib/widgets/trip-detail.dart <==
+import 'package:emissions_offset/data/trip_formatter.dart';
+import 'package:emissions_offset/models/app_settings.dart';
+import 'package:emissions_offset/models/trip.dart';
+import 'package:emissions_offset/models/unit.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+class TripDetail extends StatelessWidget {
+  final Trip trip;
+  var unit;
+
+  // Initialise this TripDetail with the provided trip.
+  TripDetail({Key key, this.trip, this.unit}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Trip Detail'),
+      ),
+      body: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text('Fuel Consumed'),
+                  subtitle: Text(TripFormatter.FormatFuelConsumed(trip.getFuelConsumed())),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: Text('Carbon emitted'),
+                  subtitle: Text(TripFormatter.FormatCarbonEmissions(trip.getCarbonEmissions())),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text('Distance'),
+                  subtitle: Text(TripFormatter.formatDistance(trip.getDistance(), unit)),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: Text('Time'),
+                  subtitle: Text(TripFormatter.formatElapsedTime(trip.getElapsedTime())),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text('Offset cost'),
+                  subtitle: Text(TripFormatter.FormatOffsetCost(trip.getOffsetCost())),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: Text('Average speed'),
+                  subtitle: Text(TripFormatter.formatAverageSpeed(trip.getAverageSpeed(), unit)),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text('Start time'),
+                  subtitle: Text(trip.startTime.toString()),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: Text('End time'),
+                  subtitle: Text(trip.endTime.toString()),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+          child: Icon(CupertinoIcons.trash),
+          onPressed: () {
+            // Navigate back and say we did want to delete the trip.
+            Navigator.of(context).pop(true);
+          }),
+    );
+  }
+}
+
+==> ./lib/widgets/trip-history.dart <==
+import 'package:emissions_offset/data/trip_formatter.dart';
+import 'package:emissions_offset/stores/app_settings_store.dart';
+import 'package:emissions_offset/stores/trip_store.dart';
+import 'package:emissions_offset/widgets/historical-statistics.dart';
+import 'package:emissions_offset/widgets/settings.dart';
+import 'package:emissions_offset/widgets/trip-detail.dart';
+import 'package:emissions_offset/widgets/trip-record.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
+class TripHistory extends StatefulWidget {
+  TripHistory({Key key, this.title}) : super(key: key);
+  final String title;
+
+  @override
+  _TripHistoryState createState() => _TripHistoryState();
+}
+
+class _TripHistoryState extends State<TripHistory> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              switch (value) {
+                case 'Historical statistics':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HistoricalStatistics(
+                          allTrips: context.read<TripStore>().trips,
+                          unit: context.read<AppSettingsStore>().appSettings.unit),
+                    ),
+                  );
+                  break;
+                case 'Settings':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Settings(),
+                    ),
+                  );
+                  break;
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return {'Historical statistics', 'Settings'}.map((String choice) {
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: Text(choice),
+                );
+              }).toList();
+            },
+          ),
+        ],
+      ),
+      body: Consumer2<TripStore, AppSettingsStore>(
+        builder: (context, tripStore, appsettings, child) => Align(
+          alignment: Alignment.topCenter,
+          child: ListView.builder(
+            itemCount: tripStore.trips.length,
+            // reverse so trips are displayed in reverse chronological order (newest first)
+            reverse: true,
+            shrinkWrap: true,
+            itemBuilder: (context, index) {
+              var trip = tripStore.trips[index];
+              var date = DateFormat.yMd().format(trip.startTime);
+              var time = DateFormat.Hm().format(trip.startTime);
+              return ListTile(
+                onTap: () async {
+                  var shouldDelete = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TripDetail(trip: trip, unit: appsettings.appSettings.unit),
+                    ),
+                  );
+
+                  if (shouldDelete) {
+                    setState(() {
+                      tripStore.deleteTrip(index);
+                    });
+                  }
+                },
+                leading: Icon(
+                  Icons.directions_car,
+                  color: Colors.black54,
+                ),
+                title: Column(
+                  children: <Widget>[
+                    Text(TripFormatter.formatDistance(
+                        trip.getDistance(), appsettings.appSettings.unit)),
+                    Text(
+                        'Fuel consumed: ${TripFormatter.FormatFuelConsumed(trip.getFuelConsumed())}'),
+                    Text(
+                        'Carbon emitted: ${TripFormatter.FormatCarbonEmissions(trip.getCarbonEmissions())}'),
+                  ],
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                ),
+                trailing: Column(
+                  children: <Widget>[
+                    Text(date),
+                    Text(time),
+                  ],
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _navigateAndRecordTrip(context);
+        },
+        tooltip: 'New Trip',
+        child: Icon(Icons.add),
+      ),
+    );
+  }
+
+  void _navigateAndRecordTrip(BuildContext context) async {
+    var tripStore = context.read<TripStore>();
+    var settingsStore = context.read<AppSettingsStore>();
+
+    // This navigates to the trip recording page, awaiting the returned recorded
+    // trip.
+    var recordedTrip = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TripRecord(
+            title: 'Trip Recording', appSettings: settingsStore.appSettings),
+      ),
+    );
+
+    // If a trip was returned, add it to the tripStore retrieved above and
+    // update the UI.
+    if (recordedTrip != null) {
+      if (recordedTrip.tripPoints != null &&
+          recordedTrip.getElapsedTime().inSeconds > 0) {
+        setState(() {
+          tripStore.addTrip(recordedTrip);
+        });
+      }
+    }
+  }
+}
+
+==> ./lib/widgets/trip-record.dart <==
+import 'dart:async';
+
+import 'package:emissions_offset/data/trip_formatter.dart';
+import 'package:emissions_offset/data/trip_recorder.dart';
+import 'package:emissions_offset/models/app_settings.dart';
+import 'package:emissions_offset/models/trip.dart';
+import 'package:emissions_offset/models/unit.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+
+class TripRecord extends StatefulWidget {
+  var appSettings;
+
+  TripRecord({Key key, this.title, this.appSettings}) : super(key: key);
+  final String title;
+
+  @override
+  _TripRecorderState createState() => _TripRecorderState(this.appSettings);
+}
+
+class _TripRecorderState extends State {
+  Trip trip;
+  TripRecorder tripRecorder;
+  bool isRecording = false;
+  IconData fabIcon = Icons.play_arrow;
+  Unit unit = Unit.Kilometers;
+
+  StreamSubscription<Position> gpsStreamSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    var dismissButton = TextButton(
+      child: Text("Dismiss"),
+      onPressed: () {
+        // Close the dialog
+        Navigator.of(context).pop();
+      },
+    );
+
+    AlertDialog confirmDialog = AlertDialog(
+      title: Text("Warning to user"),
+      content: Text(
+          "This application must only be used passengers of vehicles. To reduce the risk of distracting the driver, this application must never be used by the driver."),
+      actions: [dismissButton],
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return confirmDialog;
+          });
+    });
+  }
+
+  // Initialise this TripRecord with a new trip.
+  _TripRecorderState(AppSettings appSettings) {
+    this.trip = Trip.withSettings(appSettings);
+    this.tripRecorder = TripRecorder();
+    this.gpsStreamSubscription = this
+        .tripRecorder
+        .registerGpsHandler(this.trip, this.updateTripStateCallback);
+  }
+
+  void updateTripStateCallback(Position position) {
+    setState(() {
+      if (this.isRecording) {
+        if (position != null) {
+          trip.addPosition(position);
+        }
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => this.complete(),
+        ),
+        title: Text('Trip Recording'),
+      ),
+      body: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text('Distance'),
+                  subtitle: Text(TripFormatter.formatDistance(
+                      this.trip.getDistance(), unit)),
+                ),
+              ),
+              Expanded(
+                child: ListTile(
+                  title: Text('Time'),
+                  subtitle: Text(TripFormatter.formatElapsedTime(
+                      this.trip.getElapsedTime())),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text('Average Speed'),
+                  subtitle: Text(TripFormatter.formatAverageSpeed(
+                      this.trip.getAverageSpeed(), unit)),
+                ),
+              )
+            ],
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+          child: Icon(fabIcon),
+          onPressed: () {
+            setState(() {
+              if (!this.isRecording) {
+                if (this.trip.tripPoints.isEmpty) {
+                  this.start();
+                } else {
+                  this.resume();
+                }
+              } else {
+                this.pause();
+              }
+            });
+          }),
+    );
+  }
+
+  start() {
+    this.isRecording = true;
+    this.trip.begin();
+    this.fabIcon = Icons.pause;
+  }
+
+  pause() {
+    this.isRecording = false;
+    this.fabIcon = Icons.play_arrow;
+    this.gpsStreamSubscription.pause();
+  }
+
+  resume() {
+    this.isRecording = true;
+    this.fabIcon = Icons.pause;
+    this.gpsStreamSubscription.resume();
+  }
+
+  finish() {
+    this.isRecording = false;
+
+    if (this.gpsStreamSubscription != null) {
+      this.gpsStreamSubscription.cancel();
+    }
+
+    this.trip.end();
+  }
+
+  void complete() {
+    this.finish();
+    Navigator.of(context).pop(this.trip);
+  }
+}
+
+==> ./test/calculators/consumption_calculator_test.dart <==
+import 'package:emissions_offset/data/consumption_calculator.dart';
+import 'package:emissions_offset/models/fuel_type.dart';
+import 'package:emissions_offset/models/point.dart';
+import 'package:emissions_offset/models/trip.dart';
+import 'package:emissions_offset/models/trip_point.dart';
+import 'package:emissions_offset/models/vehicle.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  var dummyVehicle = new Vehicle(0, 0, FuelType.Gasoline);
+  var tonneVehicle = new Vehicle(1000, 0, FuelType.Gasoline);
+  test('calculateSpeed() calculates the speed', () {
+    // 0 longitude and 1 longitude are about 111km apart
+    var testPoint1 = new Point(0, 0, 0);
+    var testPoint2 = new Point(1, 0, 0);
+
+    // Setup datetimes to be 1 hour apart
+    var testTripPoint1 = new TripPoint(testPoint1);
+    testTripPoint1.setDateTime(new DateTime(2021,1,1,0,0,0));
+    var testTripPoint2 = new TripPoint(testPoint2);
+    testTripPoint2.setDateTime(new DateTime(2021,1,1,1,0,0));
+
+    // Calculate the speed
+    var cc = new ConsumptionCalculator(dummyVehicle);
+    // get the speed in m/s
+    var speed = cc.calculateSpeed(testTripPoint1, testTripPoint2);
+
+
+    // 111km in 1 hour = ~111km/h
+    expect((speed * 3.6).round(), 111);
+  });
+
+  test('calculateRoadGrade() calculates the gradient', () {
+    // 0 longitude and 1 longitude are about 111km apart
+    var testPoint1 = new Point(0, 0, 0);
+    var testPoint2 = new Point(1, 0, 111000);
+
+    // Calculate the road grade
+    var cc = new ConsumptionCalculator(dummyVehicle);
+    var grade = cc.calculateRoadGrade(testPoint1, testPoint2);
+
+    // 111km up over 111km distance = ~100% gradient = 1
+    expect(1, grade.round());
+  });
+
+  test('getVspMode() correctly calculates the vsp buckets', (){
+    // test values for each vsp bucket (vsp mode number, test vsp value)
+    const testValues = [
+      [1, -5],
+      [2, -1],
+      [3, 0.5],
+      [4, 3],
+      [5, 5],
+      [6, 8],
+      [7, 11],
+      [8, 15],
+      [9, 18],
+      [10, 20],
+      [11, 25],
+      [12, 30],
+      [13, 35],
+      [14, 45]
+    ];
+
+    var cc = new ConsumptionCalculator(dummyVehicle);
+
+    for(var i = 0; i < testValues.length; ++i){
+      expect(testValues[i][0], cc.getVspMode(testValues[i][1]));
+    }
+  });
+
+  test('calculate() calculates the consumption for a single trip.', () {
+    // 0 longitude and 1 longitude are about 111km apart
+    var testPoint1 = new Point(0, 0, 0);
+    var testPoint2 = new Point(1, 0, 0);
+    var testPoint3 = new Point(0, 0, 0);
+
+    // Setup datetimes to be 1 hour apart
+    var testTripPoint1 = new TripPoint(testPoint1);
+    testTripPoint1.setDateTime(new DateTime(2021,1,1,0,0,0));
+    var testTripPoint2 = new TripPoint(testPoint2);
+    testTripPoint2.setDateTime(new DateTime(2021,1,1,1,0,0));
+    var testTripPoint3 = new TripPoint(testPoint3);
+    testTripPoint3.setDateTime(new DateTime(2021,1,1,2,0,0));
+
+    // setup the trip
+    Trip trip = new Trip();
+    trip.startTime = new DateTime(2020,12,31,23,59,55);
+    trip.endTime = new DateTime(2021,1,1,2,0,5);
+    trip.tripPoints.add(testTripPoint1);
+    trip.tripPoints.add(testTripPoint2);
+    trip.tripPoints.add(testTripPoint3);
+
+    // Calculate the road grade
+    var cc = new ConsumptionCalculator(tonneVehicle);
+    var consumption = cc.calculate(trip);
+    print(consumption);
+
+    // 111km up over 111km distance = ~100% gradient
+    //expect(100, consumption.round());
+  });
+}
+==> ./test/models/trip_test.dart <==
+import 'package:emissions_offset/models/point.dart';
+import 'package:emissions_offset/models/trip.dart';
+import 'package:emissions_offset/models/trip_point.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  test('addPoint() adds the new point', () {
+    var testTrip = new Trip();
+    var testPoint = new Point(0, 0, 0);
+
+    testTrip.addPoint(testPoint);
+
+    expect(1, testTrip.tripPoints.length);
+    expect(0, testTrip.tripPoints[0].point.longitude);
+    expect(0, testTrip.tripPoints[0].point.latitude);
+    expect(0, testTrip.tripPoints[0].point.altitude);
+  });
+
+  test('getAccelerations() calculates the accelerations', ()
+  {
+    // 0 longitude and 1 longitude are about 111km apart
+    var testPoint1 = new Point(0, 0, 0);
+    var testPoint2 = new Point(1, 0, 111000);
+    var testPoint3 = new Point(0, 0, 0);
+
+    // Setup datetimes to be 1 hour apart
+    var testTripPoint1 = new TripPoint(testPoint1);
+    testTripPoint1.setDateTime(new DateTime(2021, 1, 1, 0, 0, 0));
+    var testTripPoint2 = new TripPoint(testPoint2);
+    testTripPoint2.setDateTime(new DateTime(2021, 1, 1, 1, 0, 0));
+    var testTripPoint3 = new TripPoint(testPoint3);
+    testTripPoint3.setDateTime(new DateTime(2021, 1, 1, 2, 0, 0));
+
+    var testTrip = new Trip();
+    testTrip.startTime = new DateTime(2020,12,31,23,59,55);
+    testTrip.endTime = new DateTime(2021,1,1,2,0,5);
+
+    testTrip.tripPoints.addAll([testTripPoint1, testTripPoint2, testTripPoint3]);
+    var accelerations = testTrip.getAccelerations();
+    print(accelerations);
+  });
+  }
+==> ./test/widget_test.dart <==
+// This is a basic Flutter widget test.
+//
+// To perform an interaction with a widget in your test, use the WidgetTester
+// utility that Flutter provides. For example, you can send tap and scroll
+// gestures. You can also use WidgetTester to find child widgets in the widget
+// tree, read text, and verify that the values of widget properties are correct.
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:emissions_offset/main.dart';
+
+void main() {
+  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+    // Build our app and trigger a frame.
+    await tester.pumpWidget(EmissionsOffsetApp());
+
+    // Verify that our counter starts at 0.
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('1'), findsNothing);
+
+    // Tap the '+' icon and trigger a frame.
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
+
+    // Verify that our counter has incremented.
+    expect(find.text('0'), findsNothing);
+    expect(find.text('1'), findsOneWidget);
+  });
+}
